@@ -1,7 +1,10 @@
-
 import json
 from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS, cross_origin
+
 app = Flask(__name__)
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 favorites = [
     { 'id': 1, 'name': 'carrot' },
@@ -13,6 +16,7 @@ nextFavoriteId = 4
 #3
 
 @app.route('/favorites', methods=['GET'])
+@cross_origin()
 def get_favorites():
     return jsonify(favorites)
 
@@ -36,8 +40,8 @@ def favorite_is_valid(favorite):
 def create_favorite():
     global nextfavoriteId
     favorite = json.loads(request.data)
-    if not favorite_is_valid(favorite):
-        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
+    #if not favorite_is_valid(favorite):
+    #    return jsonify({ 'error': 'Invalid favorite properties.' }), 400
     favorite['id'] = nextfavoriteId
     nextfavoriteId += 1
     favorites.append(favorite)
