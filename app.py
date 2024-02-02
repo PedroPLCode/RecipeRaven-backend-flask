@@ -77,5 +77,12 @@ def delete_favorite(id: int):
 def show_info():
     return render_template("index.html")
 
+@app.route('/login', methods=['POST'])
+@cross_origin()
+def login():
+    request_data = json.loads(request.data)
+    print(request_data)
+    return request_data
+
 if __name__ == '__main__':
     app.run(port=5000)
