@@ -1,19 +1,23 @@
 import json
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
+from flask_login import LoginManager
 
+login_manager = LoginManager()
 app = Flask(__name__)
+login_manager.init_app(app)
 CORS(app)
+cors = CORS(app, resources={r"/favorites": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-favorites = [
-    { 'id': 1, 'name': 'carrot' },
-    { 'id': 2, 'name': 'corn' },
-    { 'id': 3, 'name': 'tomato' }
-]
+favorites = []
 
-nextFavoriteId = 4
+nextFavoriteId = 1
 #3
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 @app.route('/favorites', methods=['GET'])
 @cross_origin()
@@ -32,20 +36,22 @@ def get_favorite(id):
 
 def favorite_is_valid(favorite):
     for key in favorite.keys():
-        if key != 'name':
+        if key != 'recipe':
             return False
     return True
 
 @app.route('/favorites', methods=['POST'])
+@cross_origin()
 def create_favorite():
-    global nextfavoriteId
-    favorite = json.loads(request.data)
-    #if not favorite_is_valid(favorite):
-    #    return jsonify({ 'error': 'Invalid favorite properties.' }), 400
-    favorite['id'] = nextfavoriteId
-    nextfavoriteId += 1
-    favorites.append(favorite)
-    return '', 201, { 'location': f'/favorites/{favorite["id"]}' }
+    global nextFavoriteId
+    newFavorite = {}
+    newFavorite['recipe'] = json.loads(request.data)
+    if not favorite_is_valid(newFavorite):
+        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
+    newFavorite['id'] = nextFavoriteId
+    nextFavoriteId += 1
+    favorites.append(newFavorite)
+    return '', 201, { 'location': f'/favorites/{newFavorite["id"]}' }
 
 @app.route('/favorites/<int:id>', methods=['PUT'])
 def update_favorite(id: int):
@@ -73,4 +79,3 @@ def show_info():
 
 if __name__ == '__main__':
     app.run(port=5000)
-
