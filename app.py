@@ -24,19 +24,13 @@ def load_user(user_id):
 def get_favorites():
     return jsonify(favorites)
 
-@app.route('/favorites/<int:id>', methods=['GET'])
-def get_favorite_by_id(id: int):
-    favorite = get_favorite(id)
-    if favorite is None:
-        return jsonify({ 'error': 'favorite does not exist'}), 404
-    return jsonify(favorite)
-
 def get_favorite(id):
     return next((f for f in favorites if f['id'] == id), None)
 
 def favorite_is_valid(favorite):
     for key in favorite.keys():
-        if key != 'recipe':
+        print(key)
+        if key != 'id' and key != 'data':
             return False
     return True
 
@@ -45,24 +39,13 @@ def favorite_is_valid(favorite):
 def create_favorite():
     global nextFavoriteId
     newFavorite = {}
-    newFavorite['recipe'] = json.loads(request.data)
-    if not favorite_is_valid(newFavorite):
-        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
     newFavorite['id'] = nextFavoriteId
     nextFavoriteId += 1
+    newFavorite['data'] = json.loads(request.data)
+    if not favorite_is_valid(newFavorite):
+        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
     favorites.append(newFavorite)
     return '', 201, { 'location': f'/favorites/{newFavorite["id"]}' }
-
-@app.route('/favorites/<int:id>', methods=['PUT'])
-def update_favorite(id: int):
-    favorite = get_favorite(id)
-    if favorite is None:
-        return jsonify({ 'error': 'favorite does not exist.' }), 404
-    updated_favorite = json.loads(request.data)
-    if not favorite_is_valid(updated_favorite):
-        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
-    favorite.update(updated_favorite)
-    return jsonify(favorite)
 
 @app.route('/favorites/<int:id>', methods=['DELETE'])
 def delete_favorite(id: int):
@@ -82,7 +65,27 @@ def show_info():
 def login():
     request_data = json.loads(request.data)
     print(request_data)
-    return request_data
+    return str(request_data)
 
 if __name__ == '__main__':
     app.run(port=5000)
+    
+"""
+@app.route('/favorites/<int:id>', methods=['GET'])
+def get_favorite_by_id(id: int):
+    favorite = get_favorite(id)
+    if favorite is None:
+        return jsonify({ 'error': 'favorite does not exist'}), 404
+    return jsonify(favorite)
+
+@app.route('/favorites/<int:id>', methods=['PUT'])
+def update_favorite(id: int):
+    favorite = get_favorite(id)
+    if favorite is None:
+        return jsonify({ 'error': 'favorite does not exist.' }), 404
+    updated_favorite = json.loads(request.data)
+    if not favorite_is_valid(updated_favorite):
+        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
+    favorite.update(updated_favorite)
+    return jsonify(favorite)
+"""
