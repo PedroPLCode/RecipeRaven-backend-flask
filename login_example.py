@@ -1,105 +1,66 @@
-#!/usr/bin/env python
-# encoding: utf-8
-import json
-from flask import Flask, request, jsonify
-from flask.ext.login import (current_user, LoginManager,
-                             login_user, logout_user,
-                             login_required)
-from flask_mongoengine import MongoEngine
+from flask import Flask, render_template, request, url_for, redirect
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user
+ 
 app = Flask(__name__)
-app.config['MONGODB_SETTINGS'] = {
-    'db': 'your_database',
-    'host': 'localhost',
-    'port': 27017
-}
-app.secret_key = 'some key'
-db = MongoEngine()
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+app.config["SECRET_KEY"] = "abc"
+db = SQLAlchemy()
+ 
 login_manager = LoginManager()
-db.init_app(app)
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+ 
+ 
+class Users(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(250), unique=True, nullable=False)
+    password = db.Column(db.String(250), nullable=False)
+ 
+ 
+db.init_app(app)
+ 
+ 
+with app.app_context():
+    db.create_all()
+ 
+ 
 @login_manager.user_loader
-def load_user(user_id):
-    return User.objects(id=user_id).first()
-@app.route('/login', methods=['POST'])
+def loader_user(user_id):
+    return Users.query.get(user_id)
+ 
+ 
+@app.route('/register', methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        user = Users(username=request.form.get("username"),
+                     password=request.form.get("password"))
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for("login"))
+    return render_template("sign_up.html")
+ 
+ 
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    info = json.loads(request.data)
-    username = info.get('username', 'guest')
-    password = info.get('password', '')
-    user = User.objects(name=username,
-                        password=password).first()
-    if user:
-        login_user(user)
-        return jsonify(user.to_json())
-    else:
-        return jsonify({"status": 401,
-                        "reason": "Username or Password Error"})
-@app.route('/logout', methods=['POST'])
+    if request.method == "POST":
+        user = Users.query.filter_by(
+            username=request.form.get("username")).first()
+        if user.password == request.form.get("password"):
+            login_user(user)
+            return redirect(url_for("home"))
+    return render_template("login.html")
+ 
+ 
+@app.route("/logout")
 def logout():
     logout_user()
-    return jsonify(**{'result': 200,
-                      'data': {'message': 'logout success'}})
-@app.route('/user_info', methods=['POST'])
-def user_info():
-    if current_user.is_authenticated:
-        resp = {"result": 200,
-                "data": current_user.to_json()}
-    else:
-        resp = {"result": 401,
-                "data": {"message": "user no login"}}
-    return jsonify(**resp)
-class User(db.Document):
-    name = db.StringField()
-    password = db.StringField()
-    email = db.StringField()
-    def to_json(self):
-        return {"name": self.name,
-                "email": self.email}
-    def is_authenticated(self):
-        return True
-    def is_active(self):
-        return True
-    def is_anonymous(self):
-        return False
-    def get_id(self):
-        return str(self.id)
-@app.route('/', methods=['GET'])
-def query_records():
-    name = request.args.get('name')
-    user = User.objects(name=name).first()
-    if not user:
-        return jsonify({'error': 'data not found'})
-    else:
-        return jsonify(user.to_json())
-@app.route('/', methods=['PUT'])
-@login_required
-def create_record():
-    record = json.loads(request.data)
-    user = User(name=record['name'],
-                password=record['password'],
-                email=record['email'])
-    user.save()
-    return jsonify(user.to_json())
-@app.route('/', methods=['POST'])
-@login_required
-def update_record():
-    record = json.loads(request.data)
-    user = User.objects(name=record['name']).first()
-    if not user:
-        return jsonify({'error': 'data not found'})
-    else:
-        user.update(email=record['email'],
-                    password=record['password'])
-    return jsonify(user.to_json())
-@app.route('/', methods=['DELETE'])
-@login_required
-def delte_record():
-    record = json.loads(request.data)
-    user = User.objects(name=record['name']).first()
-    if not user:
-        return jsonify({'error': 'data not found'})
-    else:
-        user.delete()
-    return jsonify(user.to_json())
+    return redirect(url_for("home"))
+ 
+ 
+@app.route("/")
+def home():
+    return render_template("home.html")
+ 
+ 
 if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+    app.run()

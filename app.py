@@ -3,6 +3,8 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+import bcrypt
+from sqlalchemy import Column, Integer, Text
 from sqlalchemy import create_engine, Column, Integer, String, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -10,31 +12,51 @@ import os.path
 from datetime import datetime, timedelta, timezone
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
+                               
+# https://hackersandslackers.com/flask-login-user-authentication/
+# https://www.geeksforgeeks.org/how-to-add-authentication-to-your-app-with-flask-login/
 
 login_manager = LoginManager()
-api = Flask(__name__)
+app = Flask(__name__)
 db = SQLAlchemy()
 db_name = 'favorites.db'
-login_manager.init_app(api)
-CORS(api)
-cors = CORS(api, resources={r"/favorites": {"origins": "*"}})
-api.config['CORS_HEADERS'] = 'Content-Type'
+login_manager.init_app(app)
+CORS(app)
+cors = CORS(app, resources={r"/favorites": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
-api.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
-api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
-jwt = JWTManager(api)
+app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+jwt = JWTManager(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, db_name)
-api.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
-api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-db.init_app(api)
+db.init_app(app)
+
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String)
+    password = db.Column(db.String)
+    name = db.Column(db.String)
+    about = db.Column(db.String)
+    picture = db.Column(db.String)
+    created_on = db.Column(db.String)
+    last_login = db.Column(db.String)
+    
+    def verify_password(self, password):
+        pwhash = bcrypt.hashpw(password, self.password)
+        return self.password == pwhash
+
 
 class Favorite(db.Model):
     __tablename__ = 'favorites'
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.JSON, nullable=False)
+    
     
 db_url = 'sqlite:///favorites.db'
 engine = create_engine(db_url)
@@ -46,7 +68,8 @@ favorites = []
 
 nextFavoriteId = 1
 
-@api.after_request
+
+@app.after_request
 def refresh_expiring_jwts(response):
     try:
         exp_timestamp = get_jwt()["exp"]
@@ -62,7 +85,8 @@ def refresh_expiring_jwts(response):
     except (RuntimeError, KeyError):
         return response
     
-@api.route('/token', methods=["POST"])
+    
+@app.route('/token', methods=["POST"])
 @cross_origin()
 def create_token():
     email = request.json.get("email", None)
@@ -73,14 +97,16 @@ def create_token():
     response = {"access_token":access_token}
     return response
 
-@api.route("/logout", methods=["POST"])
+
+@app.route("/logout", methods=["POST"])
 @cross_origin()
 def logout():
     response = jsonify({"msg": "logout successful"})
     unset_jwt_cookies(response)
     return response
 
-@api.route('/profile')
+
+@app.route('/profile')
 @cross_origin()
 @jwt_required()
 def my_profile():
@@ -90,7 +116,8 @@ def my_profile():
     }
     return response_body
 
-@api.route('/favorites', methods=['GET'])
+
+@app.route('/favorites', methods=['GET'])
 @cross_origin()
 def get_favorites():
     try:
@@ -101,8 +128,10 @@ def get_favorites():
         return str(error)
     return jsonify(favorites)
 
+
 def get_favorite(id):
     return next((f for f in favorites if f['id'] == id), None)
+
 
 def favorite_is_valid(favorite):
     for key in favorite.keys():
@@ -110,7 +139,8 @@ def favorite_is_valid(favorite):
             return False
     return True
 
-@api.route('/favorites', methods=['POST'])
+
+@app.route('/favorites', methods=['POST'])
 @cross_origin()
 def create_favorite():
     global nextFavoriteId
@@ -126,7 +156,8 @@ def create_favorite():
     db.session.commit()
     return '', 201, { 'location': f'/favorites/{newFavorite["id"]}' }
 
-@api.route('/favorites/<int:id>', methods=['DELETE'])
+
+@app.route('/favorites/<int:id>', methods=['DELETE'])
 def delete_favorite(id: int):
     global favorites
     selectedFavorite = get_favorite(id)
@@ -137,9 +168,11 @@ def delete_favorite(id: int):
     db.session.commit()
     return jsonify(selectedFavorite), 200
 
-@api.route('/', methods=['GET'])
+
+@app.route('/', methods=['GET'])
 def show_info():
     return render_template("index.html")
 
+
 if __name__ == '__main__':
-    api.run(port=5000)
+    app.run(port=5000)
