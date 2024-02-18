@@ -4,6 +4,11 @@ from flask_cors import CORS, cross_origin
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 import bcrypt
+import random
+import requests
+import json
+import requests
+from PRIVATE_API_KEY import PRIVATE_API_KEY
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy import create_engine, Column, Integer, String, JSON
 from sqlalchemy.ext.declarative import declarative_base
@@ -117,6 +122,65 @@ def my_profile():
     return response_body
 
 
+@app.route('/search', methods=['POST'])
+@cross_origin()
+def fetch_receipes():
+    data_str = request.data.decode('utf-8')
+    data_dict = json.loads(data_str)
+
+    ingredients_array = (data_dict.get('ingredients', ''))
+    excluded_array = (data_dict.get('excluded', ''))
+    diet_array = (data_dict.get('diet', ''))
+    
+    ingredients_string = ' '.join(ingredients_array)
+    excluded_string = ' '.join(excluded_array)
+    diet_string = ' '.join(diet_array)
+        
+    url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
+    querystring = {"type":"any", "excluded[0]":f"{excluded_string}", "q":f"{ingredients_string} {diet_string}"}
+    headers = {
+        "Accept-Language": "en",
+        "X-RapidAPI-Key": PRIVATE_API_KEY,
+        'Content-Type': 'application/json',
+        "X-RapidAPI-Host": "edamam-recipe-search.p.rapidapi.com"
+    }
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        return response.json()
+    except Exception as error:
+        return error
+
+
+def get_random_topic(array):
+    min_val = 0
+    max_val = len(array) - 1
+    random_index = get_random_int_inclusive(min_val, max_val)
+    return array[random_index]
+
+
+def get_random_int_inclusive(min_val, max_val):
+    return random.randint(min_val, max_val)
+
+
+@app.route('/quote', methods=['GET'])
+@cross_origin()
+def fetch_quotes():
+    default_quote = "You are what you eat, so don't be fast, cheap, easy, or fake."
+    main_url = 'https://famous-quotes4.p.rapidapi.com/random?'
+    category = f"category={get_random_topic(['fitness', 'food', 'health'])}"
+    count = '&count=1'
+    url = f"{main_url}{category}{count}"
+    headers = {
+        'X-RapidAPI-Key': PRIVATE_API_KEY,
+        'X-RapidAPI-Host': 'famous-quotes4.p.rapidapi.com'
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception:
+        return [{"text": default_quote}]
+  
+
 @app.route('/favorites', methods=['GET'])
 @cross_origin()
 def get_favorites():
@@ -175,4 +239,4 @@ def show_info():
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(debug=True, port=5000)
