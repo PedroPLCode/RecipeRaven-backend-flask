@@ -1,22 +1,22 @@
-import json
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, Text
+from sqlalchemy import create_engine, Column, Integer, String, JSON
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime, timedelta, timezone
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
+                               unset_jwt_cookies, jwt_required, JWTManager
+import json
 import bcrypt
 import random
 import requests
 import json
 import requests
-from PRIVATE_API_KEY import PRIVATE_API_KEY
-from sqlalchemy import Column, Integer, Text
-from sqlalchemy import create_engine, Column, Integer, String, JSON
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os.path
-from datetime import datetime, timedelta, timezone
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
+from PRIVATE_API_KEY import PRIVATE_API_KEY
                                
 # https://hackersandslackers.com/flask-login-user-authentication/
 # https://www.geeksforgeeks.org/how-to-add-authentication-to-your-app-with-flask-login/
@@ -146,7 +146,86 @@ def fetch_receipes():
     }
     try:
         response = requests.get(url, headers=headers, params=querystring)
-        return response.json()
+        response_data = response.json()
+        
+        search_results = {
+            'headers': { # check headers
+                'ok': True,
+                'status': 200,
+                'statusText': 'ok',
+            },
+            'count': response_data['count'],
+            'hits': [],
+            '_links': response_data['_links'],
+        }
+        for single_hit in response_data['hits']:
+            single_result = {
+                'url': single_hit['recipe']['url'],
+                'image_SMALL_url': single_hit['recipe']['images']['SMALL']['url'],
+                'image_REGULAR_url':  single_hit['recipe']['images']['REGULAR']['url'],
+                'label': single_hit['recipe']['label'],
+                'dishType': single_hit['recipe']['dishType'],
+                'mealType': single_hit['recipe']['mealType'],
+                'cuisineType': single_hit['recipe']['cuisineType'],
+                'cautions': single_hit['recipe']['cautions'],
+                'totalTime': single_hit['recipe']['totalTime'],
+                'dietLabels': single_hit['recipe']['dietLabels'],
+                'healthLabels': single_hit['recipe']['healthLabels'],
+                'calories': single_hit['recipe']['calories'],
+            }
+            search_results['hits'].append(single_result)
+        return search_results
+    except Exception as error:
+        return error
+
+
+@app.route('/more', methods=['POST'])
+@cross_origin()
+def fetch_more_receipes():
+    data_str = request.data.decode('utf-8')
+    data_dict = json.loads(data_str)
+
+    link_next_page = (data_dict.get('link_next_page', ''))
+    
+    url = link_next_page['href']
+    headers = {
+        "Accept-Language": "en",
+        "X-RapidAPI-Key": PRIVATE_API_KEY,
+        'Content-Type': 'application/json',
+        "X-RapidAPI-Host": "edamam-recipe-search.p.rapidapi.com"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response_data = response.json()
+        
+        search_results2 = {
+            'headers': { # check headers
+                'ok': True,
+                'status': 200,
+                'statusText': 'ok',
+            },
+            'count': response_data['count'],
+            'hits': [],
+            '_links': response_data['_links'],
+        }
+        for single_hit in response_data['hits']:
+            single_result = {
+                'url': single_hit['recipe']['url'],
+                'image_SMALL_url': single_hit['recipe']['images']['SMALL']['url'],
+                'image_REGULAR_url':  single_hit['recipe']['images']['REGULAR']['url'],
+                'label': single_hit['recipe']['label'],
+                'dishType': single_hit['recipe']['dishType'],
+                'mealType': single_hit['recipe']['mealType'],
+                'cuisineType': single_hit['recipe']['cuisineType'],
+                'cautions': single_hit['recipe']['cautions'],
+                'totalTime': single_hit['recipe']['totalTime'],
+                'dietLabels': single_hit['recipe']['dietLabels'],
+                'healthLabels': single_hit['recipe']['healthLabels'],
+                'calories': single_hit['recipe']['calories'],
+            }
+            search_results2['hits'].append(single_result)
+        search_results2['_links'] = response_data['_links']
+        return search_results2
     except Exception as error:
         return error
 
