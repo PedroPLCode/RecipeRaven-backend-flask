@@ -149,11 +149,6 @@ def fetch_receipes():
         response_data = response.json()
         
         search_results = {
-            'headers': { # check headers
-                'ok': True,
-                'status': 200,
-                'statusText': 'ok',
-            },
             'count': response_data['count'],
             'hits': [],
             '_links': response_data['_links'],
@@ -198,12 +193,7 @@ def fetch_more_receipes():
         response = requests.get(url, headers=headers)
         response_data = response.json()
         
-        search_results2 = {
-            'headers': { # check headers
-                'ok': True,
-                'status': 200,
-                'statusText': 'ok',
-            },
+        search_results = {
             'count': response_data['count'],
             'hits': [],
             '_links': response_data['_links'],
@@ -223,9 +213,8 @@ def fetch_more_receipes():
                 'healthLabels': single_hit['recipe']['healthLabels'],
                 'calories': single_hit['recipe']['calories'],
             }
-            search_results2['hits'].append(single_result)
-        search_results2['_links'] = response_data['_links']
-        return search_results2
+            search_results['hits'].append(single_result)
+        return search_results
     except Exception as error:
         return error
 
