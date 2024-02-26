@@ -63,15 +63,24 @@ class Favorite(db.Model):
     data = db.Column(db.JSON, nullable=False)
     
     
+class Board(db.Model):
+    __tablename__ = 'board'
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.JSON, nullable=False)
+    
+    
 db_url = 'sqlite:///favorites.db'
 engine = create_engine(db_url)
 Favorite.metadata.create_all(engine)
+Board.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
     
 favorites = []
+board = []
 
 nextFavoriteId = 1
+nextNewPostId = 1
 
 
 @app.after_request
@@ -128,22 +137,51 @@ def fetch_receipes():
     data_str = request.data.decode('utf-8')
     data_dict = json.loads(data_str)
 
-    ingredients_array = (data_dict.get('ingredients', ''))
-    excluded_array = (data_dict.get('excluded', ''))
-    diet_array = (data_dict.get('diet', ''))
+    ingredients_array = (data_dict.get('ingredients', False))
+    excluded_array = (data_dict.get('excluded', False))
+    params_array = (data_dict.get('params', False))
+    link_next_page = (data_dict.get('link_next_page'), False)
     
-    ingredients_string = ' '.join(ingredients_array)
-    excluded_string = ' '.join(excluded_array)
-    diet_string = ' '.join(diet_array)
-        
-    url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
-    querystring = {"type":"any", "excluded[0]":f"{excluded_string}", "q":f"{ingredients_string} {diet_string}"}
     headers = {
         "Accept-Language": "en",
         "X-RapidAPI-Key": PRIVATE_API_KEY,
         'Content-Type': 'application/json',
         "X-RapidAPI-Host": "edamam-recipe-search.p.rapidapi.com"
     }
+    
+    if link_next_page[0]:
+        url = link_next_page[0]['href']
+        querystring = None
+    else:
+        url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
+        querystring = {
+            "type":"any",
+            #"random":"true"
+        }
+        
+        diet_labels = ['low-carb', 'low-fat']
+        health_labels = ['vegan', 'vegetarian', 'gluten-free', 'alcohol-free']
+        excluded_index = 0
+        health_index = 0
+        diet_index = 0
+        
+        if ingredients_array:
+            querystring["q"] = ' '.join(ingredients_array)
+        
+        if excluded_array:
+            for single_excluded in excluded_array:
+                querystring[f"excluded[{excluded_index}]"] = single_excluded
+                excluded_index += 1
+            
+        if params_array:
+            for single_param in params_array:
+                if single_param in diet_labels:
+                    querystring[f"diet[{diet_index}]"] = single_param
+                    diet_index += 1
+                elif single_param in health_labels:
+                    querystring[f"health[{health_index}]"] = single_param
+                    health_index += 1
+        
     try:
         response = requests.get(url, headers=headers, params=querystring)
         response_data = response.json()
@@ -171,52 +209,7 @@ def fetch_receipes():
             search_results['hits'].append(single_result)
         return search_results
     except Exception as error:
-        return error
-
-
-@app.route('/more', methods=['POST'])
-@cross_origin()
-def fetch_more_receipes():
-    data_str = request.data.decode('utf-8')
-    data_dict = json.loads(data_str)
-
-    link_next_page = (data_dict.get('link_next_page', ''))
-    
-    url = link_next_page['href']
-    headers = {
-        "Accept-Language": "en",
-        "X-RapidAPI-Key": PRIVATE_API_KEY,
-        'Content-Type': 'application/json',
-        "X-RapidAPI-Host": "edamam-recipe-search.p.rapidapi.com"
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        response_data = response.json()
-        
-        search_results = {
-            'count': response_data['count'],
-            'hits': [],
-            '_links': response_data['_links'],
-        }
-        for single_hit in response_data['hits']:
-            single_result = {
-                'url': single_hit['recipe']['url'],
-                'image_SMALL_url': single_hit['recipe']['images']['SMALL']['url'],
-                'image_REGULAR_url':  single_hit['recipe']['images']['REGULAR']['url'],
-                'label': single_hit['recipe']['label'],
-                'dishType': single_hit['recipe']['dishType'],
-                'mealType': single_hit['recipe']['mealType'],
-                'cuisineType': single_hit['recipe']['cuisineType'],
-                'cautions': single_hit['recipe']['cautions'],
-                'totalTime': single_hit['recipe']['totalTime'],
-                'dietLabels': single_hit['recipe']['dietLabels'],
-                'healthLabels': single_hit['recipe']['healthLabels'],
-                'calories': single_hit['recipe']['calories'],
-            }
-            search_results['hits'].append(single_result)
-        return search_results
-    except Exception as error:
-        return error
+        return jsonify({ 'error': f'{error}' }), 500
 
 
 def get_random_topic(array):
@@ -233,7 +226,6 @@ def get_random_int_inclusive(min_val, max_val):
 @app.route('/quote', methods=['GET'])
 @cross_origin()
 def fetch_quotes():
-    default_quote = "You are what you eat, so don't be fast, cheap, easy, or fake."
     main_url = 'https://famous-quotes4.p.rapidapi.com/random?'
     category = f"category={get_random_topic(['fitness', 'food', 'health'])}"
     count = '&count=1'
@@ -245,8 +237,8 @@ def fetch_quotes():
     try:
         response = requests.get(url, headers=headers)
         return response.json()
-    except Exception:
-        return [{"text": default_quote}]
+    except Exception as error:
+        return jsonify({ 'error': f'{error}' }), 500
   
 
 @app.route('/favorites', methods=['GET'])
@@ -265,8 +257,8 @@ def get_favorite(id):
     return next((f for f in favorites if f['id'] == id), None)
 
 
-def favorite_is_valid(favorite):
-    for key in favorite.keys():
+def item_is_valid(item):
+    for key in item.keys():
         if key != 'id' and key != 'data':
             return False
     return True
@@ -280,7 +272,7 @@ def create_favorite():
     newFavorite['data'] = json.loads(request.data)
     newFavorite['id'] = nextFavoriteId
     nextFavoriteId += 1
-    if not favorite_is_valid(newFavorite):
+    if not item_is_valid(newFavorite):
         return jsonify({ 'error': 'Invalid favorite properties.' }), 400
     favorites.append(newFavorite)
     favoriteToSave = Favorite(data=newFavorite)
@@ -299,6 +291,35 @@ def delete_favorite(id: int):
     db.session.delete(selectedFavorite)
     db.session.commit()
     return jsonify(selectedFavorite), 200
+
+
+@app.route('/board', methods=['GET'])
+@cross_origin()
+def get_board():
+    try:
+        dataLoadedFromDB = db.session.execute(db.select(Board))
+        if not isinstance(board, list):
+            board.append(dataLoadedFromDB)
+    except Exception as error:
+        return str(error)
+    return jsonify(board)
+
+
+@app.route('/board', methods=['POST'])
+@cross_origin()
+def create_new_post():
+    global nextNewPostId
+    newPost = {}
+    newPost['data'] = json.loads(request.data)
+    newPost['id'] = nextNewPostId
+    nextNewPostId += 1
+    if not item_is_valid(newPost):
+        return jsonify({ 'error': 'Invalid favorite properties.' }), 400
+    board.append(newPost)
+    newPostToSave = Board(data=newPost)
+    db.session.add(newPostToSave)
+    db.session.commit()
+    return '', 201, { 'location': f'/board/{newPost["id"]}' }
 
 
 @app.route('/', methods=['GET'])
