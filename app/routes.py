@@ -10,6 +10,9 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
+#logging dodać
+#pytests dodać
+
 app.secret_key = b'my-super-top-secret-key'
 
 #Ok działa
@@ -117,24 +120,31 @@ def fetch_quotes():
 @cross_origin()
 @jwt_required()
 def get_favorites():
-    results = []
-    favorites = Favorite.query.all()
-    for favorite in favorites:
-        favorite.data['id'] = favorite.id
-        results.append(favorite.data)
-    return results
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404() 
+        results = []
+        favorites = Favorite.query.filter_by(user_id=user.id).all()
+        for favorite in favorites:
+            favorite.data['id'] = favorite.id
+            results.append(favorite.data)
+        return results
+    except Exception as e:
+        return {"msg": str(e)}, 401
+    
 
 #ok działa
 @app.route('/favorites', methods=['POST'])
 @cross_origin()
 @jwt_required()
 def create_favorite():
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(login=current_user).first_or_404() 
     new_temp_favorite = {}
     new_temp_favorite['data'] = json.loads(request.data)
-    new_favorite = Favorite(data=new_temp_favorite, user_id=new_temp_favorite['data']['user_id'] if new_temp_favorite['data']['user_id'] else None)
+    new_favorite = Favorite(data=new_temp_favorite, user_id=user.id if current_user else None)
     db.session.add(new_favorite)
     db.session.commit()
-    #logging dodać
     return '', 201, { 'location': f'/favorites/{new_favorite.id}' }
 
 

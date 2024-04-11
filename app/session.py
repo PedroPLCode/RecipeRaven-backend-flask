@@ -8,7 +8,6 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 import json
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
-
 @app.after_request
 def refresh_expiring_jwts(response):
     try:
@@ -24,6 +23,7 @@ def refresh_expiring_jwts(response):
         return response
     except (RuntimeError, KeyError):
         return response
+    
     
 @app.route('/user', methods=["POST"])
 @cross_origin()
@@ -56,12 +56,10 @@ def create_token():
     login = request.json.get("login", None)
     password = request.json.get("password", None)
     user = User.query.filter_by(login = login).first()
-
+    
     if user and user.verify_password(password):
         access_token = create_access_token(identity=login)
-        response = {"access_token": access_token,
-                    "user_id": user.id,
-                    }
+        response = {"access_token": access_token}
         return response
     else:
         return {"msg": "Wrong email or password"}, 401
@@ -79,10 +77,17 @@ def logout():
 @cross_origin()
 @jwt_required()
 def my_profile():
-    response_body = {
-        "name": "Pedro",
-        "about" :"Details about Pedro"
-    }
-    return response_body
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()  
+            
+        response_body = {
+            "name": user.name,
+            "email": user.email,
+            "about": user.about,
+        }
+        return response_body
+    except Exception as e:
+        return {"msg": str(e)}, 401
 
 
