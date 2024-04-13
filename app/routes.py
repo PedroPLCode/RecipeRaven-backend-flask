@@ -118,7 +118,6 @@ def fetch_quotes():
 #ok działa
 @app.route('/favorites', methods=['GET'])
 @cross_origin()
-@jwt_required()
 def get_favorites():
     try:
         current_user = get_jwt_identity()
@@ -140,10 +139,10 @@ def get_favorites():
 def create_favorite():
     current_user = get_jwt_identity()
     user = User.query.filter_by(login=current_user).first_or_404() 
-    new_temp_favorite = {}
-    new_temp_favorite['data'] = json.loads(request.data)
-    new_favorite = Favorite(data=new_temp_favorite, user_id=user.id if current_user else None)
-    db.session.add(new_favorite)
+    new_favorite = {}
+    new_favorite['data'] = json.loads(request.data)
+    favorite = Favorite(data=new_favorite, user_id=user.id if current_user else None)
+    db.session.add(favorite)
     db.session.commit()
     return '', 201, { 'location': f'/favorites/{new_favorite.id}' }
 
@@ -162,17 +161,33 @@ def delete_favorite(favorite_id: int):
 @app.route('/posts', methods=['GET'])
 @cross_origin()
 def get_posts():
+    all_users = User.query.all() 
     all_posts = Post.query.all()
-    return jsonify(all_posts)
+    results = []
+    for post in all_posts:
+        temp = {}
+        temp['content'] = post.content
+        temp['title'] = post.title
+        temp['author'] = post.user.name
+        results.append(temp)
+    return results
 
 
-@app.route('/post', methods=['POST'])
+@app.route('/posts', methods=['POST'])
 @cross_origin()
+@jwt_required()
 def create_post():
-    new_post = Post(data=json.loads(request.data))
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"message": "No input data provided"}), 400
+    
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(login=current_user).first_or_404() 
+    new_post = Post(title=data["title"], content=data["content"], user_id=user.id)
     db.session.add(new_post)
     db.session.commit()
-    return '', 201, { 'location': f'/posts/{new_post.id}' }
+    return jsonify({"message": "Post created successfully", "location": f'/posts/{new_post.id}'}), 201
 
 
 @app.route('/posts/<int:post_id>', methods=['DELETE'])
@@ -192,13 +207,20 @@ def get_comments():
     return jsonify(all_comments)
 
 
-@app.route('/comment', methods=['POST'])
+@app.route('/comments', methods=['POST'])
 @cross_origin()
 def create_comment():
-    new_comment = Comment(data=json.loads(request.data))
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"message": "No input data provided"}), 400
+    
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(login=current_user).first_or_404() 
+    new_comment = Comment(content=data["content"], user_id=user.id)
     db.session.add(new_comment)
     db.session.commit()
-    return '', 201, { 'location': f'/comments/{new_comment.id}' }
+    return jsonify({"message": "Comment created successfully", "location": f'/comments/{new_comment.id}'}), 201
 
 
 @app.route('/comments/<int:comment_id>', methods=['DELETE'])

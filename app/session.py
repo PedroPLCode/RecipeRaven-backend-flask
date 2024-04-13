@@ -25,6 +25,31 @@ def refresh_expiring_jwts(response):
         return response
     
     
+@app.route('/user', methods=["GET"])
+@cross_origin()
+@jwt_required()
+def get_user():
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()  
+        user_favorites = Favorite.query.filter_by(user_id=user.id).all()
+        user_posts = Post.query.filter_by(user_id=user.id).all()
+        user_comments = Comment.query.filter_by(user_id=user.id).all()
+        
+        response_body = {
+            "login": user.login,
+            "name": user.name,
+            "email": user.email,
+            "about": user.about,
+            "picture": user.picture,
+            "creation_date": user.creation_date,
+            "last_login": user.last_login,
+        }
+        return response_body, 200
+    except Exception as e:
+        return {"msg": str(e)}, 401
+    
+    
 @app.route('/user', methods=["POST"])
 @cross_origin()
 def create_user():
@@ -49,6 +74,30 @@ def create_user():
     response = {"new_user":new_user}
     return response
 
+
+@app.route('/user', methods=["DELETE"])
+@cross_origin()
+@jwt_required()
+def delete_user():
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()  
+        user_favorites = Favorite.query.filter_by(user_id=user.id).all()
+        
+        for favorite in user_favorites:
+            db.session.delete(favorite)
+        db.session.delete(user)
+        db.session.commit()
+        
+        response_body = {
+            "name": user.name,
+            "email": user.email,
+            "about": user.about,
+        }
+        return response_body, 200
+    except Exception as e:
+        return {"msg": str(e)}, 401
+
     
 @app.route('/token', methods=["POST"])
 @cross_origin()
@@ -71,23 +120,3 @@ def logout():
     response = jsonify({"msg": "logout successful"})
     unset_jwt_cookies(response)
     return response
-
-
-@app.route('/profile')
-@cross_origin()
-@jwt_required()
-def my_profile():
-    try:
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404()  
-            
-        response_body = {
-            "name": user.name,
-            "email": user.email,
-            "about": user.about,
-        }
-        return response_body
-    except Exception as e:
-        return {"msg": str(e)}, 401
-
-
