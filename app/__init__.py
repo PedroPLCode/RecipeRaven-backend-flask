@@ -17,8 +17,19 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
-CORS(app)
-cors = CORS(app, resources={r"/favorites": {"origins": "*"}})
+CORS(app, resources={
+    r"/users": {"origins": "*"},
+    r"/users/*": {"origins": "*"},
+    r"/favorites/*": {"origins": "*"},
+    r"/api/*": {"origins": "*"},
+    # Add more routes as needed
+}, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+#cors = CORS(app, resources={r"/favorites": {"origins": "*"}})
+
+
+from app.routes import routes as routes_blueprint
+app.register_blueprint(routes_blueprint, url_prefix='/')
 
 @app.shell_context_processor
 def make_shell_context():
@@ -30,4 +41,5 @@ def make_shell_context():
         "Comment": models.Comment,
     }
 
-from app import routes, session, models
+from app import routes, models
+from app.routes import session, favorites, posts, comments, users, rapidapi
