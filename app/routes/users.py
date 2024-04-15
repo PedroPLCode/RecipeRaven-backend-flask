@@ -17,20 +17,25 @@ def get_user():
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()  
-        user_favorites = Favorite.query.filter_by(user_id=user.id).all()
-        user_posts = Post.query.filter_by(user_id=user.id).all()
-        user_comments = Comment.query.filter_by(user_id=user.id).all()
         
-        response_body = {
-            "login": user.login,
-            "name": user.name,
-            "email": user.email,
-            "about": user.about,
-            "picture": user.picture,
-            "creation_date": user.creation_date,
-            "last_login": user.last_login,
-        }
-        return response_body, 200
+        if user:
+            user_favorites = Favorite.query.filter_by(user_id=user.id).all()
+            user_posts = Post.query.filter_by(user_id=user.id).all()
+            user_comments = Comment.query.filter_by(user_id=user.id).all()
+            
+            response_body = {
+                "login": user.login,
+                "name": user.name,
+                "email": user.email,
+                "about": user.about,
+                "picture": user.picture,
+                "creation_date": user.creation_date,
+                "last_login": user.last_login,
+            }
+            return response_body, 200
+        else:
+            return {"msg": "User not found"}, 404
+        
     except Exception as e:
         return {"msg": str(e)}, 401
     
@@ -59,6 +64,46 @@ def create_user():
         
         response = {"new_user":new_user}
         return response
+    except Exception as e:
+        return {"msg": str(e)}, 401
+    
+    
+@app.route('/api/users', methods=["PUT"])
+@cross_origin()
+@jwt_required()
+def change_user():
+    try:
+        current_user_login = get_jwt_identity()
+        user = User.query.filter_by(login=current_user_login).first_or_404()
+        
+        old_password = request.json.get("oldPassword", None)
+        new_password = request.json.get("newPassword", None)
+        email = request.json.get("email", user.email)
+        name = request.json.get("name", user.name)
+        about = request.json.get("about", user.about)
+
+        if old_password and new_password:
+            if user.verify_password(old_password):
+                user.password = new_password
+        else:            
+            user.email = email
+            user.name = name
+            user.about = about
+
+        db.session.commit()
+
+        response = {
+            "login": user.login,
+            "name": user.name,
+            "email": user.email,
+            "about": user.about,
+            "picture": user.picture,
+            "creation_date": user.creation_date,
+            "last_login": user.last_login,
+        }
+        
+        return response, 200
+
     except Exception as e:
         return {"msg": str(e)}, 401
 
