@@ -11,7 +11,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
 #Ok działa
-@app.route('/api/search/', methods=['POST'])
+@app.route('/api/search', methods=['POST'])
 @cross_origin()
 def fetch_receipes():
     data_str = request.data.decode('utf-8')
@@ -92,7 +92,7 @@ def fetch_receipes():
         return jsonify({ 'error': f'{error}' }), 500
 
 #Ok działa
-@app.route('/api/quote/', methods=['GET'])
+@app.route('/api/quote', methods=['GET'])
 @cross_origin()
 def fetch_quotes():
     main_url = 'https://famous-quotes4.p.rapidapi.com/random?'

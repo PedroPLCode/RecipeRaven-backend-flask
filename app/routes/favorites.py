@@ -10,7 +10,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
-@app.route('/api/favorites/', methods=['GET'])
+@app.route('/api/favorites', methods=['GET'])
 @cross_origin()
 @jwt_required()
 def get_favorites():
@@ -29,7 +29,7 @@ def get_favorites():
             return {"msg": str(e)}, 401
     
 
-@app.route('/api/favorites/', methods=['POST'])
+@app.route('/api/favorites', methods=['POST'])
 @cross_origin()
 @jwt_required()
 def create_favorite():

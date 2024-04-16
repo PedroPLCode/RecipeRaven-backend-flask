@@ -46,6 +46,9 @@ def create_comment():
     except Exception as e:
         return {"msg": str(e)}, 401
     
+    
+#PUT 
+
 
 @app.route('/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()

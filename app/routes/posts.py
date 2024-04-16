@@ -48,6 +48,9 @@ def create_post():
         return {"msg": str(e)}, 401
 
 
+#PUT
+
+
 @app.route('/posts/<int:post_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
