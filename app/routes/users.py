@@ -10,6 +10,17 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
+@app.route('/api/logins', methods=["GET"])
+@cross_origin()
+def check_user_login():
+    try:
+        login_query = request.args.get("login", "")
+        user = User.query.filter_by(login=login_query).first_or_404() 
+        return {user.login: True if user else False}, 200 
+    except Exception as e:
+        return {"msg": str(e)}, 500
+    
+    
 @app.route('/api/users', methods=["GET"])
 @cross_origin()
 @jwt_required()
@@ -23,7 +34,7 @@ def get_user():
             user_posts = Post.query.filter_by(user_id=user.id).all()
             user_comments = Comment.query.filter_by(user_id=user.id).all()
             
-            response_body = {
+            user_data = {
                 "login": user.login,
                 "name": user.name,
                 "email": user.email,
@@ -32,7 +43,7 @@ def get_user():
                 "creation_date": user.creation_date,
                 "last_login": user.last_login,
             }
-            return response_body, 200
+            return {"user_data": user_data}, 200
         else:
             return {"msg": "User not found"}, 404
         

@@ -10,7 +10,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
-@app.route('/posts', methods=['GET'])
+@app.route('/api/posts', methods=['GET'])
 @cross_origin()
 def get_posts():
     try:
@@ -28,7 +28,7 @@ def get_posts():
         return {"msg": str(e)}, 401
 
 
-@app.route('/posts', methods=['POST'])
+@app.route('/api/posts', methods=['POST'])
 @cross_origin()
 @jwt_required()
 def create_post():
@@ -51,7 +51,7 @@ def create_post():
 #PUT
 
 
-@app.route('/posts/<int:post_id>', methods=['DELETE'])
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
 def delete_post(post_id: int):
