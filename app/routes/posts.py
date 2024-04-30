@@ -21,7 +21,7 @@ def get_posts():
             temp = {}
             temp['content'] = post.content
             temp['title'] = post.title
-            temp['author'] = post.user.name
+            temp['author'] = post.user.name if post.user else 'Anonymous'
             results.append(temp)
         return results
     except Exception as e:

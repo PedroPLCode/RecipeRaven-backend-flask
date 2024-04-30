@@ -15,10 +15,14 @@ from PRIVATE_API_KEY import PRIVATE_API_KEY
 def check_user_login():
     try:
         login_query = request.args.get("login", "")
-        user = User.query.filter_by(login=login_query).first_or_404() 
-        return {user.login: True if user else False}, 200 
+        if len(login_query) > 0:
+            user = User.query.filter_by(login=login_query).first()
+            if user:
+                return jsonify({"login_status": True, "message": "Login successful"}), 200
+            else:
+                return jsonify({"login_status": False, "message": "Login unsuccessful"}), 200
     except Exception as e:
-        return {"msg": str(e)}, 500
+        return jsonify({"message": "An error occurred", "error": str(e)}), 500
     
     
 @app.route('/api/users', methods=["GET"])
