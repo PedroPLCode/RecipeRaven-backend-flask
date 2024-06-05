@@ -10,4 +10,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    UPLOADED_PHOTOS_DEST = os.path.join(os.getcwd(), 'app/static/profile_pictures')  # folder, w którym będą przechowywane zdjęcia
+    ALLOWED_PHOTOS_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    
     admin_id = 1

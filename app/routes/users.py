@@ -1,10 +1,14 @@
 from app import app, db
 from app.models import User, Post, Comment, Favorite
 from app.utils import *
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import  FileStorage
+import os
 #from config import Config
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
 import json
+from datetime import datetime as dt
 import requests
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
@@ -40,12 +44,16 @@ def get_user():
             
             user_data = {
                 "login": user.login,
-                "name": user.name,
                 "email": user.email,
+                "name": user.name,
                 "about": user.about,
                 "picture": user.picture,
-                "creation_date": user.creation_date,
                 "last_login": user.last_login,
+                "last_api_activity": dt.utcnow(),
+                "creation_date": user.creation_date,
+                "favorites_count": len(user.favorites),
+                "posts_count": len(user_posts),
+                "comments_count": len(user_comments),
             }
             return {"user_data": user_data}, 200
         else:
@@ -64,15 +72,28 @@ def create_user():
         email = request.json.get("email", None)
         name = request.json.get("name", None)
         about = request.json.get("about", None)
+        picture = request.files.get('picture', None)
+        
+        if User.query.filter_by(login=login).first() or User.query.filter_by(email=email).first():
+            return jsonify({'message': 'Login or email already exists'}), 400
 
         if login == None or password == None:
             return {"msg": "Wrong email or password"}, 401
+        
+        # Zapisz zdjęcie
+        if picture:
+            filename = secure_filename(picture.filename)
+            filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+            picture.save(filepath)
+        else:
+            filename = None
 
         new_user = User(login=login,
                         password=password,
                         email=email,
                         name=name,
                         about=about,
+                        picture=filename,
                         )
         db.session.add(new_user)
         db.session.commit()
@@ -90,23 +111,37 @@ def change_user():
     try:
         current_user_login = get_jwt_identity()
         user = User.query.filter_by(login=current_user_login).first_or_404()
-        
-        old_password = request.json.get("oldPassword", None)
-        new_password = request.json.get("newPassword", None)
-        email = request.json.get("email", user.email)
-        name = request.json.get("name", user.name)
-        about = request.json.get("about", user.about)
 
+        data = request.form.to_dict()
+
+        file = request.files.get('picture')
+        if file:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+            file.save(filepath)
+            data['picture'] = filename
+
+        old_password = data.get("oldPassword")
+        new_password = data.get("newPassword")
         if old_password and new_password:
             if user.verify_password(old_password):
-                user.password = new_password
-        else:            
-            user.email = email
-            user.name = name
-            user.about = about
+                user.password = new_password  # Make sure to hash the new password
+            else:
+                return jsonify({"msg": "Old password is incorrect"}), 400
+        else:
+            user.email = data['email']
+            user.name = data['name']
+            user.about = data['about']
+            if 'picture' in data:
+                user.picture = data['picture']
 
         db.session.commit()
+        return jsonify({"msg": "User details updated successfully"}), 200
 
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 400
+
+    """
         response = {
             "login": user.login,
             "name": user.name,
@@ -118,9 +153,7 @@ def change_user():
         }
         
         return response, 200
-
-    except Exception as e:
-        return {"msg": str(e)}, 401
+    """
 
 
 @app.route('/api/users', methods=["DELETE"])

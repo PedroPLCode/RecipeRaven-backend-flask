@@ -3,13 +3,13 @@ from datetime import datetime as dt
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
     login = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(80), nullable=False)
-    name = db.Column(db.String(80))
-    about = db.Column(db.String(80))
-    picture = db.Column(db.String(80))
+    name = db.Column(db.String(80), nullable=True)
+    about = db.Column(db.String(80), nullable=True)
+    picture = db.Column(db.String(80), nullable=True)
     creation_date = db.Column(db.DateTime, nullable=False, 
                               default=dt.utcnow)
     last_login = db.Column(db.DateTime, nullable=False, 

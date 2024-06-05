@@ -26,3 +26,4 @@ typing-extensions==4.11.0
 urllib3==2.2.1
 werkzeug==3.0.2
 zipp==3.18.1
+Flask-Reuploaded==1.4.0

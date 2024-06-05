@@ -1,5 +1,6 @@
 from app import app, db
 from flask import jsonify, request
+from datetime import datetime as dt
 from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
 from app.models import User, Post, Comment, Favorite
@@ -35,6 +36,8 @@ def create_token():
     if user and user.verify_password(password):
         access_token = create_access_token(identity=login)
         response = {"access_token": access_token}
+        user.last_login = dt.utcnow()
+        db.session.commit()
         return response
     else:
         return {"msg": "Wrong email or password"}, 401

@@ -21,7 +21,8 @@ def get_posts():
             temp = {}
             temp['content'] = post.content
             temp['title'] = post.title
-            temp['author'] = post.user.name if post.user else 'Anonymous'
+            temp['author'] = post.user.name if post.user else None
+            temp['author_picture'] = post.user.picture if post.user else None
             results.append(temp)
         return results
     except Exception as e:
