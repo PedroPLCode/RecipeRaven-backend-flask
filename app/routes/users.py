@@ -63,30 +63,56 @@ def get_user():
         return {"msg": str(e)}, 401
     
     
+@app.route('/api/userpasswdcheck', methods=["POST"])
+@cross_origin()
+@jwt_required()
+def check_user_password():
+    try:
+        data = request.form.to_dict() or request.json
+        password = data.get("password")
+
+        if not password:
+            return {"msg": "Password is required"}, 400
+
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+
+        passwd_check = user.verify_password(password) if user else False
+        return {"passwd_check": passwd_check}, 200
+        
+    except Exception as e:
+        # Możesz również dodać logowanie błędów tutaj
+        return {"msg": str(e)}, 500
+
+    
+    
 @app.route('/api/users', methods=["POST"])
 @cross_origin()
 def create_user():
+    print('create start 0')
     try:
-        login = request.json.get("login", None)
-        password = request.json.get("password", None)
-        email = request.json.get("email", None)
-        name = request.json.get("name", None)
-        about = request.json.get("about", None)
-        picture = request.files.get('picture', None)
+        data = request.form.to_dict()
+        login = data.get("login")
+        password = data.get("password")
+        email = data.get("email")
+        name = data.get("name")
+        about = data.get("about")
         
+        print('create start')
+        
+        if login is None or password is None:
+            return jsonify({"msg": "Wrong email or password"}), 401
+
         if User.query.filter_by(login=login).first() or User.query.filter_by(email=email).first():
             return jsonify({'message': 'Login or email already exists'}), 400
-
-        if login == None or password == None:
-            return {"msg": "Wrong email or password"}, 401
         
         # Zapisz zdjęcie
+        picture = request.files.get('picture')
+        filename = None
         if picture:
             filename = secure_filename(picture.filename)
             filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
             picture.save(filepath)
-        else:
-            filename = None
 
         new_user = User(login=login,
                         password=password,
@@ -98,10 +124,11 @@ def create_user():
         db.session.add(new_user)
         db.session.commit()
         
-        response = {"new_user":new_user}
-        return response
+        response = {"new_user": new_user}
+        return jsonify(response), 201  # Zwróć kod stanu 201 CREATED po pomyślnym utworzeniu użytkownika
     except Exception as e:
-        return {"msg": str(e)}, 401
+        return jsonify({"msg": str(e)}), 500  # Zwróć kod stanu 500 INTERNAL SERVER ERROR w przypadku wystąpienia błędu serwera
+
     
     
 @app.route('/api/users', methods=["PUT"])

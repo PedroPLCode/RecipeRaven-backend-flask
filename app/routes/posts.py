@@ -22,6 +22,7 @@ def get_posts():
             temp['content'] = post.content
             temp['title'] = post.title
             temp['author'] = post.user.name if post.user else None
+            temp['guest_author'] = post.guest_author if post.guest_author else None
             temp['author_picture'] = post.user.picture if post.user else None
             results.append(temp)
         return results
@@ -31,7 +32,7 @@ def get_posts():
 
 @app.route('/api/posts', methods=['POST'])
 @cross_origin()
-@jwt_required()
+@jwt_required(optional=True)
 def create_post():
     try:
         data = request.get_json()
@@ -40,8 +41,10 @@ def create_post():
             return jsonify({"message": "No input data provided"}), 400
         
         current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404() 
-        new_post = Post(title=data["title"], content=data["content"], user_id=user.id)
+        user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
+
+        new_post = Post(title=data["title"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
+        
         db.session.add(new_post)
         db.session.commit()
         return jsonify({"message": "Post created successfully", "location": f'/posts/{new_post.id}'}), 201
