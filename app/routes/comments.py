@@ -10,7 +10,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
-@app.route('/comments', methods=['GET'])
+@app.route('/api/comments', methods=['GET'])
 @cross_origin()
 def get_comments():
     try:
@@ -20,16 +20,18 @@ def get_comments():
         for comment in all_comments:
             temp = {}
             temp['content'] = comment.content
-            temp['author'] = comment.user.name
+            temp['author'] = comment.user.name if comment.user else None
+            temp['guest_author'] = comment.guest_author if comment.guest_author else None
+            temp['author_picture'] = comment.user.picture if comment.user else None
             results.append(temp)
         return results
     except Exception as e:
         return {"msg": str(e)}, 401
 
 
-@app.route('/comments', methods=['POST'])
+@app.route('/api/comments', methods=['POST'])
 @cross_origin()
-@jwt_required()
+@jwt_required(optional=True)
 def create_comment():
     try:
         data = request.get_json()
@@ -38,8 +40,10 @@ def create_comment():
             return jsonify({"message": "No input data provided"}), 400
         
         current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404() 
-        new_comment = Comment(content=data["content"], user_id=user.id)
+        user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
+        
+        new_comment = Comment(content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
+        
         db.session.add(new_comment)
         db.session.commit()
         return jsonify({"message": "Comment created successfully", "location": f'/comments/{new_comment.id}'}), 201
@@ -50,7 +54,7 @@ def create_comment():
 #PUT 
 
 
-@app.route('/comments/<int:comment_id>', methods=['DELETE'])
+@app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
 def delete_comment(comment_id: int):
