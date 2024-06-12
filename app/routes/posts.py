@@ -16,15 +16,30 @@ def get_posts():
     try:
         all_users = User.query.all() 
         all_posts = Post.query.all()
+        all_comments = Comment.query.all()
         results = []
+        
         for post in all_posts:
-            temp = {}
-            temp['content'] = post.content
-            temp['title'] = post.title
-            temp['author'] = post.user.name if post.user else None
-            temp['guest_author'] = post.guest_author if post.guest_author else None
-            temp['author_picture'] = post.user.picture if post.user else None
+            temp = {
+                'id': post.id,
+                'content': post.content,
+                'title': post.title,
+                'author': post.user.name if post.user else None,
+                'guest_author': post.guest_author if post.guest_author else None,
+                'author_picture': post.user.picture if post.user else None,
+                'comments': []
+            }
+
+            post_comments = Comment.query.filter_by(post_id=post.id).all()
+            for comment in post_comments:
+                temp['comments'].append({
+                    'content': comment.content,
+                    'author': comment.user.name if comment.user else None,
+                    'guest_author': comment.guest_author if comment.guest_author else None,
+                })
+                
             results.append(temp)
+        
         return results
     except Exception as e:
         return {"msg": str(e)}, 401

@@ -42,7 +42,7 @@ def create_comment():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         
-        new_comment = Comment(content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
+        new_comment = Comment(post_id=data["post_id"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
         
         db.session.add(new_comment)
         db.session.commit()
