@@ -1,7 +1,6 @@
 from app import app, db
 from app.models import User, Post, Comment, Favorite, Note
 from app.utils import *
-#from config import Config
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
 import json

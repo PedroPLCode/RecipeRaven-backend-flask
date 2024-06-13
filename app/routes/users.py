@@ -4,7 +4,6 @@ from app.utils import *
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
 import os
-#from config import Config
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
 import json
@@ -82,7 +81,6 @@ def check_user_password():
         return {"passwd_check": passwd_check}, 200
         
     except Exception as e:
-        # Możesz również dodać logowanie błędów tutaj
         return {"msg": str(e)}, 500
 
     
@@ -107,7 +105,6 @@ def create_user():
         if User.query.filter_by(login=login).first() or User.query.filter_by(email=email).first():
             return jsonify({'message': 'Login or email already exists'}), 400
         
-        # Zapisz zdjęcie
         picture = request.files.get('picture')
         filename = None
         if picture:
@@ -126,11 +123,10 @@ def create_user():
         db.session.commit()
         
         response = {"new_user": new_user}
-        return jsonify(response), 201  # Zwróć kod stanu 201 CREATED po pomyślnym utworzeniu użytkownika
+        return jsonify(response), 201 
     except Exception as e:
-        return jsonify({"msg": str(e)}), 500  # Zwróć kod stanu 500 INTERNAL SERVER ERROR w przypadku wystąpienia błędu serwera
+        return jsonify({"msg": str(e)}), 500
 
-    
     
 @app.route('/api/users', methods=["PUT"])
 @cross_origin()
@@ -153,7 +149,7 @@ def change_user():
         new_password = data.get("newPassword")
         if old_password and new_password:
             if user.verify_password(old_password):
-                user.password = new_password  # Make sure to hash the new password
+                user.password = new_password 
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400
         else:
@@ -168,20 +164,6 @@ def change_user():
 
     except Exception as e:
         return jsonify({"msg": str(e)}), 400
-
-    """
-        response = {
-            "login": user.login,
-            "name": user.name,
-            "email": user.email,
-            "about": user.about,
-            "picture": user.picture,
-            "creation_date": user.creation_date,
-            "last_login": user.last_login,
-        }
-        
-        return response, 200
-    """
 
 
 @app.route('/api/users', methods=["DELETE"])

@@ -1,7 +1,6 @@
 from app import app, db
 from app.models import User, Post, Comment, Favorite
 from app.utils import *
-#from config import Config
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
 import json
@@ -10,7 +9,6 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from PRIVATE_API_KEY import PRIVATE_API_KEY
 
-#Ok działa
 @app.route('/api/search', methods=['POST'])
 @cross_origin()
 def fetch_receipes():
@@ -91,7 +89,7 @@ def fetch_receipes():
     except Exception as error:
         return jsonify({ 'error': f'{error}' }), 500
 
-#Ok działa
+
 @app.route('/api/quote', methods=['GET'])
 @cross_origin()
 def fetch_quotes():

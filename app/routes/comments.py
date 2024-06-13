@@ -1,7 +1,6 @@
 from app import app, db
 from app.models import User, Post, Comment, Favorite
 from app.utils import *
-#from config import Config
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
 import json
@@ -50,9 +49,6 @@ def create_comment():
     except Exception as e:
         return {"msg": str(e)}, 401
     
-    
-#PUT 
-
 
 @app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()

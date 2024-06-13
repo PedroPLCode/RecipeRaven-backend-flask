@@ -15,7 +15,6 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
-# Inicjalizacja Flask-Uploads
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
 #patch_request_class(app)  # Ogranicza wielkość przesyłanych plików, domyślnie do 16MB
@@ -27,8 +26,6 @@ CORS(app, resources={
     r"/api/*": {"origins": "*"},
     # Add more routes as needed
 }, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-
-#cors = CORS(app, resources={r"/favorites": {"origins": "*"}})
 
 
 from app.routes import routes as routes_blueprint
