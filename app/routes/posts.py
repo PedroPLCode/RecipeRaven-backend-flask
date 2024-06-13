@@ -22,6 +22,7 @@ def get_posts():
         for post in all_posts:
             temp = {
                 'id': post.id,
+                'user_id': post.user_id,
                 'content': post.content,
                 'title': post.title,
                 'author': post.user.name if post.user else None,
@@ -33,6 +34,8 @@ def get_posts():
             post_comments = Comment.query.filter_by(post_id=post.id).all()
             for comment in post_comments:
                 temp['comments'].append({
+                    'id': comment.id,
+                    'user_id': comment.user_id,
                     'content': comment.content,
                     'author': comment.user.name if comment.user else None,
                     'guest_author': comment.guest_author if comment.guest_author else None,
@@ -79,9 +82,9 @@ def delete_post(post_id: int):
         user = User.query.filter_by(login=current_user).first_or_404() 
         
         if user:
-            item_to_delete = Post.query.filter_by(id=post_id, user_id=user.id).first_or_404()  
-            db.session.delete(item_to_delete)
+            post_to_delete = Post.query.filter_by(id=post_id, user_id=user.id).first_or_404()  
+            db.session.delete(post_to_delete)
             db.session.commit()
-            return jsonify(item_to_delete), 200
+            return jsonify(post_to_delete), 200
     except Exception as e:
         return {"msg": str(e)}, 401

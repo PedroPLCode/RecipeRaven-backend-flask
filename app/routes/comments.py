@@ -61,9 +61,9 @@ def delete_comment(comment_id: int):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() 
-        item_to_delete = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()  
-        db.session.delete(item_to_delete)
+        comment_to_delete = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()  
+        db.session.delete(comment_to_delete)
         db.session.commit()
-        return jsonify(item_to_delete), 200
+        return jsonify(comment_to_delete), 200
     except Exception as e:
         return {"msg": str(e)}, 401

@@ -43,6 +43,7 @@ def get_user():
             user_comments = Comment.query.filter_by(user_id=user.id).all()
             
             user_data = {
+                "id": user.id,
                 "login": user.login,
                 "email": user.email,
                 "name": user.name,
