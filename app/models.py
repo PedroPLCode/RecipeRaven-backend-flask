@@ -54,4 +54,20 @@ class Comment(db.Model):
 class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.JSON, nullable=False)
+    note = db.relationship("Note", backref="favorite")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=True)
+    creation_date = db.Column(db.DateTime, nullable=False, 
+                                default=dt.utcnow)
+    favorite_id = db.Column(db.Integer, db.ForeignKey('favorite.id'))
+        
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'favorite_id': self.favorite_id,
+            'content': self.content,
+        }

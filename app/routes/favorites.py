@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Post, Comment, Favorite
+from app.models import User, Post, Comment, Favorite, Note
 from app.utils import *
 #from config import Config
 from flask import jsonify, request, render_template
@@ -23,6 +23,10 @@ def get_favorites():
             favorites = Favorite.query.filter_by(user_id=user.id).all()
             for favorite in favorites:
                 favorite.data['id'] = favorite.id
+                
+                note = Note.query.filter_by(favorite_id=favorite.id).first()
+                favorite.data['note'] = note.to_dict() if note else None
+                
                 results.append(favorite.data)
             return results
     except Exception as e:
@@ -57,10 +61,12 @@ def delete_favorite(favorite_id: int):
         user = User.query.filter_by(login=current_user).first_or_404() 
         
         if user:
-            item_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
-            db.session.delete(item_to_delete)
+            favotite_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
+            note_to_delete = Note.query.filter_by(favorite_id=favotite_to_delete.id).all()
+            db.session.delete(favotite_to_delete)
+            db.session.delete(note_to_delete)
             db.session.commit()
-            return jsonify(item_to_delete), 200
+            return jsonify(favotite_to_delete), 200
         else:
             return {"Error. Not found"}, 401
     except Exception as e:

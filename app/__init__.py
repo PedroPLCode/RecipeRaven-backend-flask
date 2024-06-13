@@ -42,7 +42,8 @@ def make_shell_context():
         "Favorite": models.Favorite,
         "Post": models.Post,
         "Comment": models.Comment,
+        "Note": models.Note,
     }
 
 from app import routes, models
-from app.routes import session, favorites, posts, comments, users, rapidapi
+from app.routes import session, favorites, posts, comments, users, rapidapi, notes
