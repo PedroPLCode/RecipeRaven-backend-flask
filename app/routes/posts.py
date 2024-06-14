@@ -67,6 +67,29 @@ def create_post():
         return jsonify({"message": "Post created successfully", "location": f'/posts/{new_post.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
+    
+    
+@app.route('/api/posts/<int:post_id>', methods=['PUT'])
+@cross_origin()
+@jwt_required()
+def update_post(post_id):
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"message": "No input data provided"}), 400
+        
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        post = Post.query.filter_by(id=post_id, user_id=user.id).first_or_404()
+        
+        post.title = data["title"]
+        post.content = data["content"]
+
+        db.session.commit()
+        return jsonify({"message": "Post updated successfully", "location": f'/posts/{post.id}'}), 200
+    except Exception as e:
+        return {"msg": str(e)}, 401
 
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])

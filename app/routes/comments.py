@@ -49,6 +49,28 @@ def create_comment():
     except Exception as e:
         return {"msg": str(e)}, 401
     
+    
+@app.route('/api/comments/<int:comment_id>', methods=['PUT'])
+@cross_origin()
+@jwt_required()
+def update_comments(comment_id):
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"message": "No input data provided"}), 400
+        
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        comment = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()
+        
+        comment.content = data["content"]
+        db.session.commit()
+        
+        return jsonify({"message": "Comment updated successfully", "location": f'/comments/{comment.id}'}), 200
+    except Exception as e:
+        return {"msg": str(e)}, 401
+    
 
 @app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()
