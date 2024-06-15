@@ -3,6 +3,7 @@ from app.models import User, Post, Comment, Favorite
 from app.utils import *
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
+from datetime import datetime as dt
 import json
 import requests
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
@@ -24,9 +25,11 @@ def get_posts():
                 'user_id': post.user_id,
                 'content': post.content,
                 'title': post.title,
-                'author': post.user.name if post.user else None,
+                'author': post.user.name or post.user.login if post.user else None,
                 'guest_author': post.guest_author if post.guest_author else None,
                 'author_picture': post.user.picture if post.user else None,
+                'creation_date': post.creation_date,
+                'last_update': post.last_update,
                 'comments': []
             }
 
@@ -36,8 +39,10 @@ def get_posts():
                     'id': comment.id,
                     'user_id': comment.user_id,
                     'content': comment.content,
-                    'author': comment.user.name if comment.user else None,
+                    'author': comment.user.name or comment.user.login if comment.user else None,
                     'guest_author': comment.guest_author if comment.guest_author else None,
+                    'creation_date': comment.creation_date,
+                    'last_update': comment.last_update,
                 })
                 
             results.append(temp)
@@ -85,7 +90,8 @@ def update_post(post_id):
         
         post.title = data["title"]
         post.content = data["content"]
-
+        post.last_update = dt.utcnow()
+        
         db.session.commit()
         return jsonify({"message": "Post updated successfully", "location": f'/posts/{post.id}'}), 200
     except Exception as e:

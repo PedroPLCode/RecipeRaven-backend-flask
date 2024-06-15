@@ -3,6 +3,7 @@ from app.models import User, Post, Comment, Favorite
 from app.utils import *
 from flask import jsonify, request, render_template
 from flask_cors import cross_origin
+from datetime import datetime as dt
 import json
 import requests
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
@@ -65,6 +66,7 @@ def update_comments(comment_id):
         comment = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()
         
         comment.content = data["content"]
+        comment.last_update = dt.utcnow()
         db.session.commit()
         
         return jsonify({"message": "Comment updated successfully", "location": f'/comments/{comment.id}'}), 200

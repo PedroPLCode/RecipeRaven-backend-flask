@@ -10,10 +10,8 @@ class User(db.Model):
     name = db.Column(db.String(80), nullable=True)
     about = db.Column(db.String(80), nullable=True)
     picture = db.Column(db.String(80), nullable=True)
-    creation_date = db.Column(db.DateTime, nullable=False, 
-                              default=dt.utcnow)
-    last_login = db.Column(db.DateTime, nullable=False, 
-                              default=dt.utcnow)
+    creation_date = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
+    last_login = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
     favorites = db.relationship("Favorite", backref="user")
     posts = db.relationship("Post", backref="user")
     comments = db.relationship("Comment", backref="user")
@@ -35,8 +33,8 @@ class Post(db.Model):
     title = db.Column(db.String(80), nullable=False)
     content = db.Column(db.Text, nullable=False)
     guest_author = db.Column(db.String(80), nullable=True)
-    creation_date = db.Column(db.DateTime, nullable=False, 
-                              default=dt.utcnow)
+    creation_date = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
+    last_update = db.Column(db.DateTime, nullable=True, default=None)
     comments = db.relationship("Comment", backref="post")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
         
@@ -45,8 +43,8 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     guest_author = db.Column(db.String(80), nullable=True)
-    creation_date = db.Column(db.DateTime, nullable=False, 
-                                default=dt.utcnow)
+    creation_date = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
+    last_update = db.Column(db.DateTime, nullable=True, default=None)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
@@ -61,8 +59,7 @@ class Favorite(db.Model):
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=True)
-    creation_date = db.Column(db.DateTime, nullable=False, 
-                                default=dt.utcnow)
+    creation_date = db.Column(db.DateTime, nullable=False, default=dt.utcnow)
     favorite_id = db.Column(db.Integer, db.ForeignKey('favorite.id'))
         
     def to_dict(self):
