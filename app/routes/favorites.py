@@ -1,13 +1,11 @@
 from app import app, db
-from app.models import User, Post, Comment, Favorite, Note
+from app.models import User, Favorite, Note
 from app.utils import *
-from flask import jsonify, request, render_template
+from flask import jsonify, request
 from flask_cors import cross_origin
 import json
 import requests
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
-from PRIVATE_API_KEY import PRIVATE_API_KEY
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 @app.route('/api/favorites', methods=['GET'])
 @cross_origin()
@@ -61,7 +59,7 @@ def delete_favorite(favorite_id: int):
         
         if user:
             favotite_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
-            note_to_delete = Note.query.filter_by(favorite_id=favotite_to_delete.id).all()
+            note_to_delete = Note.query.filter_by(favorite_id=favotite_to_delete.id).first_or_404()
             db.session.delete(favotite_to_delete)
             db.session.delete(note_to_delete)
             db.session.commit()

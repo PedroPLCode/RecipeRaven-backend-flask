@@ -3,11 +3,10 @@ from flask import jsonify, request
 from datetime import datetime as dt
 from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
-from app.models import User, Post, Comment, Favorite
+from app.models import User
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
+                               unset_jwt_cookies
 import json
-from PRIVATE_API_KEY import PRIVATE_API_KEY
 
 @app.after_request
 def refresh_expiring_jwts(response):

@@ -1,17 +1,12 @@
 from app import app, db
-from app.models import User, Post, Comment, Favorite
+from app.models import User, Favorite
 from app.utils import *
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import  FileStorage
 import os
-from flask import jsonify, request, render_template
+from flask import jsonify, request
 from flask_cors import cross_origin
-import json
 from datetime import datetime as dt
-import requests
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
-from PRIVATE_API_KEY import PRIVATE_API_KEY
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 @app.route('/api/logins', methods=["GET"])
 @cross_origin()
@@ -21,6 +16,7 @@ def check_user_login():
         if len(login_query) > 0:
             user = User.query.filter_by(login=login_query).first()
             if user:
+                user.last_login = dt.utcnow()
                 return jsonify({"login_status": True, "message": "Login successful"}), 200
             else:
                 return jsonify({"login_status": False, "message": "Login unsuccessful"}), 200
@@ -36,11 +32,7 @@ def get_user():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()  
         
-        if user:
-            user_favorites = Favorite.query.filter_by(user_id=user.id).all()
-            user_posts = Post.query.filter_by(user_id=user.id).all()
-            user_comments = Comment.query.filter_by(user_id=user.id).all()
-            
+        if user:            
             user_data = {
                 "id": user.id,
                 "login": user.login,
@@ -52,8 +44,8 @@ def get_user():
                 "last_api_activity": dt.utcnow(),
                 "creation_date": user.creation_date,
                 "favorites_count": len(user.favorites),
-                "posts_count": len(user_posts),
-                "comments_count": len(user_comments),
+                "posts_count": len(user.posts),
+                "comments_count": len(user.comments),
             }
             return {"user_data": user_data}, 200
         else:
@@ -84,11 +76,9 @@ def check_user_password():
         return {"msg": str(e)}, 500
 
     
-    
 @app.route('/api/users', methods=["POST"])
 @cross_origin()
 def create_user():
-    print('create start 0')
     try:
         data = request.form.to_dict()
         login = data.get("login")
@@ -96,8 +86,6 @@ def create_user():
         email = data.get("email")
         name = data.get("name")
         about = data.get("about")
-        
-        print('create start')
         
         if login is None or password is None:
             return jsonify({"msg": "Wrong email or password"}), 401
@@ -115,14 +103,14 @@ def create_user():
         new_user = User(login=login,
                         password=password,
                         email=email,
-                        name=name,
-                        about=about,
-                        picture=filename,
+                        name=name if name else '',
+                        about=about if about else '',
+                        picture=filename if filename else '',
                         )
         db.session.add(new_user)
         db.session.commit()
         
-        response = {"new_user": new_user}
+        response = {"msg": "User created successfully"}
         return jsonify(response), 201 
     except Exception as e:
         return jsonify({"msg": str(e)}), 500
@@ -140,29 +128,35 @@ def change_user():
 
         file = request.files.get('picture')
         if file:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
-            file.save(filepath)
-            data['picture'] = filename
+            try:
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+                file.save(filepath)
+                data['picture'] = filename
+            except Exception as e:
+                return jsonify({"msg": f"Error saving file: {str(e)}"}), 500
+
+        if 'picture' in data:
+            user.picture = data['picture']
 
         old_password = data.get("oldPassword")
         new_password = data.get("newPassword")
         if old_password and new_password:
             if user.verify_password(old_password):
-                user.password = new_password 
+                user.password = new_password
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400
-        else:
-            user.email = data['email']
-            user.name = data['name']
-            user.about = data['about']
-            if 'picture' in data:
-                user.picture = data['picture']
+
+        user.email = data.get('email', user.email)
+        user.name = data.get('name', user.name)
+        user.about = data.get('about', user.about)
 
         db.session.commit()
+
         return jsonify({"msg": "User details updated successfully"}), 200
 
     except Exception as e:
+        db.session.rollback()
         return jsonify({"msg": str(e)}), 400
 
 

@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import timedelta
 from flask_jwt_extended import JWTManager
-from flask_uploads import UploadSet, configure_uploads, IMAGES #, patch_request_class
+from flask_uploads import UploadSet, configure_uploads, IMAGES
 
 app = Flask(__name__, static_folder='static')
 
@@ -17,14 +17,12 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
-#patch_request_class(app)  # Ogranicza wielkość przesyłanych plików, domyślnie do 16MB
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 CORS(app, resources={
     r"/api/*": {"origins": "*"},
-    # Add more routes as needed
 }, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 

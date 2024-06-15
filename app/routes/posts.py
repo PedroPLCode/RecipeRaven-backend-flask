@@ -1,22 +1,16 @@
 from app import app, db
-from app.models import User, Post, Comment, Favorite
+from app.models import User, Post, Comment
 from app.utils import *
-from flask import jsonify, request, render_template
+from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
-import json
-import requests
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
-from PRIVATE_API_KEY import PRIVATE_API_KEY
+from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager
 
 @app.route('/api/posts', methods=['GET'])
 @cross_origin()
 def get_posts():
     try:
-        all_users = User.query.all() 
         all_posts = Post.query.all()
-        all_comments = Comment.query.all()
         results = []
         
         for post in all_posts:
