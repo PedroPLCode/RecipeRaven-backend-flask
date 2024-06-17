@@ -5,6 +5,7 @@ from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from config import Config
 
 @app.route('/api/comments', methods=['GET'])
 @cross_origin()
@@ -58,7 +59,10 @@ def update_comments(comment_id):
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        comment = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()
+        comment = Comment.query.filter(
+            (Comment.id == comment_id) & 
+            ((Comment.user_id == user.id) | (user.id == Config.admin_id))
+        ).first_or_404()
         
         comment.content = data["content"]
         comment.last_update = dt.utcnow()
@@ -75,10 +79,16 @@ def update_comments(comment_id):
 def delete_comment(comment_id: int):
     try:
         current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404() 
-        comment_to_delete = Comment.query.filter_by(id=comment_id, user_id=user.id).first_or_404()  
+        user = User.query.filter_by(login=current_user).first_or_404()
+        
+        comment_to_delete = Comment.query.filter(
+            (Comment.id == comment_id) & 
+            ((Comment.user_id == user.id) | (user.id == Config.admin_id))
+        ).first_or_404()
+        
         db.session.delete(comment_to_delete)
         db.session.commit()
-        return jsonify(comment_to_delete), 200
+        
+        return {"msg": "Comment deleted successfully"}, 200
     except Exception as e:
         return {"msg": str(e)}, 401

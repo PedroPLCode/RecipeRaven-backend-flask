@@ -5,6 +5,7 @@ from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager
+from config import Config
 
 @app.route('/api/posts', methods=['GET'])
 @cross_origin()
@@ -80,7 +81,10 @@ def update_post(post_id):
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        post = Post.query.filter_by(id=post_id, user_id=user.id).first_or_404()
+        post = Post.query.filter(
+            (Post.id == post_id) & 
+            ((Post.user_id == user.id) | (user.id == Config.admin_id))
+        ).first_or_404()
         
         post.title = data["title"]
         post.content = data["content"]
@@ -101,7 +105,11 @@ def delete_post(post_id: int):
         user = User.query.filter_by(login=current_user).first_or_404() 
         
         if user:
-            post_to_delete = Post.query.filter_by(id=post_id, user_id=user.id).first_or_404()  
+            post_to_delete = Post.query.filter(
+            (Post.id == post_id) & 
+            ((Post.user_id == user.id) | (user.id == Config.admin_id))
+        ).first_or_404()
+            
             db.session.delete(post_to_delete)
             db.session.commit()
             return jsonify(post_to_delete), 200

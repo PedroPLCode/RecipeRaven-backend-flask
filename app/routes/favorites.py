@@ -6,6 +6,8 @@ from flask_cors import cross_origin
 import json
 import requests
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from werkzeug.utils import secure_filename
+import os
 
 @app.route('/api/favorites', methods=['GET'])
 @cross_origin()
@@ -41,8 +43,32 @@ def create_favorite():
         if user:
             new_favorite = {}
             new_favorite['data'] = json.loads(request.data)
+            
+            
+            
+            image_url = new_favorite['data']['image_REGULAR_url'] #or new_favorite['data']['image_SMALL_url']
+            if image_url:
+
+                response = requests.get(image_url)
+                if response.status_code == 200:
+
+                    filename = secure_filename(os.path.basename(image_url))
+                    image_path = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+                    with open(image_path, 'wb') as f:
+                        f.write(response.content)
+                    
+                    new_favorite['image_path'] = image_path
+                else:
+                    return {"msg": "Failed to fetch image from URL"}, 400
+                
+                
+                
             favorite = Favorite(data=new_favorite, user_id=user.id if current_user else None)
             db.session.add(favorite)
+            
+            note = Note(favorite_id=favorite.id, content='')
+            db.session.add(note)
+            
             db.session.commit()
             return '', 201, { 'location': f'/favorites/{new_favorite.id}' }
     except Exception as e:
@@ -58,10 +84,14 @@ def delete_favorite(favorite_id: int):
         user = User.query.filter_by(login=current_user).first_or_404() 
         
         if user:
-            favotite_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
             note_to_delete = Note.query.filter_by(favorite_id=favotite_to_delete.id).first_or_404()
-            db.session.delete(favotite_to_delete)
-            db.session.delete(note_to_delete)
+            if note_to_delete:
+                db.session.delete(note_to_delete)
+                
+            favotite_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
+            if favotite_to_delete:
+                db.session.delete(favotite_to_delete)
+                
             db.session.commit()
             return jsonify(favotite_to_delete), 200
         else:
