@@ -17,12 +17,16 @@ def create_note():
 
         note = Note.query.filter_by(favorite_id=data["favorite_id"]).first()
         if note:
-            note.content = data["content"]
+            if data["content"] == '':
+                db.session.delete(note)
+            else:
+                note.content = data["content"]
         else:
             new_note = Note(favorite_id=data["favorite_id"], content=data["content"])
             db.session.add(new_note)
 
         db.session.commit()
+        
         return '', 201, {'location': f'/notes/{note.id if note else new_note.id}'}
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

@@ -86,11 +86,15 @@ def update_post(post_id):
             ((Post.user_id == user.id) | (user.id == Config.admin_id))
         ).first_or_404()
         
-        post.title = data["title"]
-        post.content = data["content"]
-        post.last_update = dt.utcnow()
+        if data["content"] == '' and data["title"] == '':
+            db.session.delete(post)
+        else:
+            post.title = data["title"]
+            post.content = data["content"]
+            post.last_update = dt.utcnow()
         
         db.session.commit()
+        
         return jsonify({"message": "Post updated successfully", "location": f'/posts/{post.id}'}), 200
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -110,8 +114,12 @@ def delete_post(post_id: int):
             ((Post.user_id == user.id) | (user.id == Config.admin_id))
         ).first_or_404()
             
-            db.session.delete(post_to_delete)
-            db.session.commit()
-            return jsonify(post_to_delete), 200
+            post_comments = Comment.query.filter(Comment.post_id == post_to_delete.id).first()
+            if post_comments:
+                return {'Error. Post still have comments. Cant delete'}, 400
+            else: 
+                db.session.delete(post_to_delete)
+                db.session.commit()
+                return jsonify(post_to_delete), 200
     except Exception as e:
         return {"msg": str(e)}, 401

@@ -75,24 +75,25 @@ def create_favorite():
         return {"msg": str(e)}, 401
 
 
-@app.route('/api/favorites/<int:favorite_id>', methods=['DELETE'])
+@app.route('/api/favorites/<int:favorite_to_delete_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
-def delete_favorite(favorite_id: int):
+def delete_favorite(favorite_to_delete_id: int):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() 
         
-        if user:
-            note_to_delete = Note.query.filter_by(favorite_id=favotite_to_delete.id).first_or_404()
-            if note_to_delete:
-                db.session.delete(note_to_delete)
-                
-            favotite_to_delete = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404()  
+        if user:                
+            favotite_to_delete = Favorite.query.filter_by(id=favorite_to_delete_id, user_id=user.id).first_or_404()
+            note_to_delete = Note.query.filter((Note.favorite_id == favotite_to_delete.id)).first_or_404()
+            
             if favotite_to_delete:
                 db.session.delete(favotite_to_delete)
+                db.session.commit()
                 
-            db.session.commit()
+            if note_to_delete:
+                db.session.delete(note_to_delete)
+                db.session.commit()
             return jsonify(favotite_to_delete), 200
         else:
             return {"Error. Not found"}, 401

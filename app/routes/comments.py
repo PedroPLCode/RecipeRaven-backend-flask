@@ -64,8 +64,12 @@ def update_comments(comment_id):
             ((Comment.user_id == user.id) | (user.id == Config.admin_id))
         ).first_or_404()
         
-        comment.content = data["content"]
-        comment.last_update = dt.utcnow()
+        if data["content"] == '':
+            db.session.delete(comment)
+        else:
+            comment.content = data["content"]
+            comment.last_update = dt.utcnow()
+        
         db.session.commit()
         
         return jsonify({"message": "Comment updated successfully", "location": f'/comments/{comment.id}'}), 200
