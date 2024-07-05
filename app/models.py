@@ -55,6 +55,13 @@ class Favorite(db.Model):
     note = db.relationship("Note", backref="favorite")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'data': self.data,
+            'user_id': self.user_id
+        }
+    
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
