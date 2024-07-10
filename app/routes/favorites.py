@@ -90,9 +90,7 @@ def delete_favorite(favorite_to_delete_id: int):
         note_to_delete = Note.query.filter_by(favorite_id=favorite_to_delete.id).first()
 
         try:
-            print(favorite_to_delete.data)
             if 'image_name' in favorite_to_delete.data:
-                
                 image_name = favorite_to_delete.data['image_name']
                 image_to_delete = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], image_name)
                 
