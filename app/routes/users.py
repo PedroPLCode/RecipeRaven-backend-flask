@@ -17,9 +17,9 @@ def check_user_login():
             user = User.query.filter_by(login=login_query).first()
             if user:
                 user.last_login = dt.utcnow()
-                return jsonify({"login_status": True, "message": "Login successful"}), 200
+                return jsonify({"login_status": True}), 200
             else:
-                return jsonify({"login_status": False, "message": "Login unsuccessful"}), 200
+                return jsonify({"login_status": False}), 200
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
     
@@ -101,6 +101,7 @@ def create_user():
             picture.save(filepath)
 
         new_user = User(login=login,
+                        google_login = False,
                         password=password,
                         email=email,
                         name=name if name else '',
