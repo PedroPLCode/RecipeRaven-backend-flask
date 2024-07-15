@@ -1,5 +1,7 @@
-from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, db
+from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, db, mail
+from app.utils import *
 from flask import jsonify, request
+from flask_mail import Message
 from datetime import datetime as dt
 from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
@@ -92,6 +94,9 @@ def create_google_token():
             db.session.add(new_google_user)
             db.session.commit()
             user = new_google_user
+            
+            send_welcome_email(new_google_user.email, new_google_user.name)
+    
         except Exception as e:
             return jsonify({"msg": str(e)}), 500
     else:

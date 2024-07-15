@@ -1,4 +1,5 @@
-from app import app, db
+from app import app, db, mail
+from flask_mail import Message
 from app.models import User, Favorite
 from app.utils import *
 from werkzeug.utils import secure_filename
@@ -112,6 +113,8 @@ def create_user():
                         )
         db.session.add(new_user)
         db.session.commit()
+        
+        send_welcome_email(new_user.email, new_user.name)
         
         response = {"msg": "User created successfully"}
         return jsonify(response), 201 

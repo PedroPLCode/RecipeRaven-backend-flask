@@ -1,4 +1,6 @@
 import random
+from app import mail
+from flask_mail import Message
 
 def get_random_topic(array):
     min_val = 0
@@ -16,3 +18,14 @@ def item_is_valid(item):
         if key != 'id' and key != 'data':
             return False
     return True
+
+
+def send_welcome_email(email, name):
+    subject = 'Welcome in FoodApp test'
+    body = f'Hello {name.title()}'
+    message = Message(subject=subject, recipients=[email], body=body)
+    try:
+        mail.send(message)
+        return 'E-mail został wysłany!'
+    except Exception as e:
+        return str(e)
