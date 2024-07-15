@@ -45,8 +45,12 @@ def create_token():
 
 
 @app.route('/google_token', methods=['POST'])
+@cross_origin()
 def create_google_token():
-    auth_code = request.get_json()['code']
+    auth_code = request.get_json().get('code')
+    
+    if not auth_code:
+        return jsonify({"msg": "Authorization code is missing"}), 400
 
     data = {
         'code': auth_code,
@@ -56,41 +60,48 @@ def create_google_token():
         'grant_type': 'authorization_code'
     }
 
-    response = requests.post('https://oauth2.googleapis.com/token', data=data).json()
+    try:
+        response = requests.post('https://oauth2.googleapis.com/token', data=data)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        response_data = response.json()
+    except requests.exceptions.RequestException as e:
+        return jsonify({"msg": str(e)}), 500
+
     headers = {
-        'Authorization': f'Bearer {response["access_token"]}'
+        'Authorization': f'Bearer {response_data["access_token"]}'
     }
-    google_user_info = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
+
+    try:
+        google_user_info = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
+    except requests.exceptions.RequestException as e:
+        return jsonify({"msg": str(e)}), 500
+
+    user = User.query.filter_by(email=google_user_info['email'], google_user=True).first()
     
-    if not User.query.filter_by(email=google_user_info['email'], google_user=True).first():
+    if not user:
         try:
-            login = google_user_info("email")
-            email = google_user_info("email")
-            name = google_user_info("name")
-            picture = google_user_info("picture")
-            
-            new_google_user = User(login=login,
-                                google_user=True,
-                                email=email,
-                                name=name if name else '',
-                                last_login = dt.utcnow(),
-                                picture=picture if picture else '',
-                                )
+            new_google_user = User(
+                login=google_user_info.get('email'),
+                google_user=True,
+                email=google_user_info.get('email'),
+                name=google_user_info.get('given_name', ''),
+                about=google_user_info.get('name', ''),
+                last_login=dt.utcnow(),
+                picture=google_user_info.get('picture', ''),
+            )
             db.session.add(new_google_user)
             db.session.commit()
-            
+            user = new_google_user
         except Exception as e:
             return jsonify({"msg": str(e)}), 500
+    else:
+        user.last_login = dt.utcnow()
+        db.session.commit()
 
-    #jwt_token = create_access_token(identity=google_user_info['email']) 
-    #response = jsonify(user=google_user_info)
-    #response.set_cookie('access_token_cookie', value=jwt_token, secure=True)
-    access_token = create_access_token(identity=google_user_info("email"))
+    access_token = create_access_token(identity=google_user_info['email'])
     response = {"access_token": access_token}
-    #user.last_login = dt.utcnow()
-    #db.session.commit()
-    #return response
-    return response, 200
+    
+    return jsonify(response), 200
 
 
 @app.route("/logout", methods=["POST"])

@@ -36,6 +36,8 @@ def get_user():
             user_data = {
                 "id": user.id,
                 "login": user.login,
+                "google_user": user.google_user,
+                "original_google_picture": user.original_google_picture,
                 "email": user.email,
                 "name": user.name,
                 "about": user.about,
