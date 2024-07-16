@@ -1,4 +1,4 @@
-from app import app, db, mail
+from app import app, db, mail, serializer
 from flask_mail import Message
 from app.models import User, Favorite
 from app.utils import *
@@ -8,6 +8,7 @@ from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 @app.route('/api/logins', methods=["GET"])
 @cross_origin()
@@ -152,6 +153,11 @@ def change_user():
         if old_password and new_password:
             if user.verify_password(old_password):
                 user.password = new_password
+                
+                email_subject = 'passwd changed'
+                email_body = f'Hello {user.name.title()}. passwd changed.'
+                send_email(user.email, email_subject, email_body)
+        
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400
 
@@ -195,3 +201,52 @@ def delete_user():
         return response_body, 200
     except Exception as e:
         return {"msg": str(e)}, 401
+    
+    
+@app.route('/api/resetpassword', methods=["POST"])
+def reset_password_request():
+    try:
+        data = request.json
+        email_address = data.get('email')
+
+        if email_address:
+            user = User.query.filter_by(email=email_address).first_or_404()
+            if user:
+                token = serializer.dumps(email_address, salt='reset-password')
+                reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
+                email_subject = 'FoodApp passwd reset'
+                email_body = f'Hello {user.name.title()}. Passwd reset link {reset_url}'
+                send_email(email_address, email_subject, email_body)
+                return jsonify({"reset_url": reset_url}), 200
+        else:
+            return jsonify({"msg": "Email address not provided"}), 400
+
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 500
+
+
+@app.route('/api/resetpassword/reset/<token>', methods=["POST"])
+def reset_password(token):
+    try:
+        new_password = request.json.get('new_password')
+
+        if not new_password:
+            return jsonify({"error": "Brak nowego hasła"}), 400
+
+        email = serializer.loads(token, salt='reset-password', max_age=3600)
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            return jsonify({"error": "Nie znaleziono użytkownika dla tego tokenu"}), 404
+
+        user.password = new_password
+        db.session.commit()
+        
+        email_subject = 'passwd changed'
+        email_body = f'Hello {user.name.title()}. passwd changed.'
+        send_email(user.email, email_subject, email_body)
+
+        return jsonify({"message": "Hasło zostało zresetowane"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

@@ -9,6 +9,7 @@ from datetime import timedelta
 from flask_jwt_extended import JWTManager
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 import os
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 app = Flask(__name__, static_folder='static')
 
@@ -19,6 +20,7 @@ GOOGLE_SECRET_KEY = os.environ['GOOGLE_SECRET_KEY']
 GMAIL_APP_PASSWORD = os.environ['GMAIL_APP_PASSWORD']
 
 app.config.from_object(Config)
+app.config['SECRET_KEY'] = 'secret_key_here'  # Klucz tajny do podpisu tokena, lepiej przechowywać w konfiguracji aplikacji
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
@@ -33,6 +35,8 @@ app.config['MAIL_PASSWORD'] = GMAIL_APP_PASSWORD
 app.config['MAIL_DEFAULT_SENDER'] = 'piotrek.gaszczynski@gmail.com'
 
 mail = Mail(app)
+
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 #app.config['JWT_TOKEN_LOCATION'] = ['cookies'] # NOT SURE?
 #jwt_token = request.cookies.get('access_token_cookie') # Demonstration how to get the cookie
