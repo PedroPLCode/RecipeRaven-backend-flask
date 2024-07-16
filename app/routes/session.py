@@ -95,7 +95,9 @@ def create_google_token():
             db.session.commit()
             user = new_google_user
             
-            send_welcome_email(new_google_user.email, new_google_user.name)
+            email_subject = 'Welcome in FoodApp test'
+            email_body = f'Hello {new_google_user.name.title()}'
+            send_email(new_google_user.email, email_subject, email_body)
     
         except Exception as e:
             return jsonify({"msg": str(e)}), 500

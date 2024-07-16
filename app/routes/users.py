@@ -114,7 +114,9 @@ def create_user():
         db.session.add(new_user)
         db.session.commit()
         
-        send_welcome_email(new_user.email, new_user.name)
+        email_subject = 'Welcome in FoodApp test'
+        email_body = f'Hello {new_user.name.title()}'
+        send_email(new_user.email, email_subject, email_body)
         
         response = {"msg": "User created successfully"}
         return jsonify(response), 201 
@@ -185,6 +187,11 @@ def delete_user():
             "email": user.email,
             "about": user.about,
         }
+        
+        email_subject = 'Bye bye FoodApp test'
+        email_body = f'Hello {user.name.title()}. Your account was deleted.'
+        send_email(user.email, email_subject, email_body)
+            
         return response_body, 200
     except Exception as e:
         return {"msg": str(e)}, 401

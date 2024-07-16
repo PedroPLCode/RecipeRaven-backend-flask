@@ -20,9 +20,7 @@ def item_is_valid(item):
     return True
 
 
-def send_welcome_email(email, name):
-    subject = 'Welcome in FoodApp test'
-    body = f'Hello {name.title()}'
+def send_email(email, subject, body):
     message = Message(subject=subject, recipients=[email], body=body)
     try:
         mail.send(message)
