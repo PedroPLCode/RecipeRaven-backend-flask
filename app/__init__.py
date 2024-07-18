@@ -58,12 +58,13 @@ app.register_blueprint(routes_blueprint, url_prefix='/')
 def make_shell_context():
     return {
         "db": db,
-        "User": models.User,
-        "Favorite": models.Favorite,
-        "Post": models.Post,
-        "Comment": models.Comment,
-        "Note": models.Note,
+        "User": app.models.User,
+        "Favorite": app.models.Favorite,
+        "Post": app.models.Post,
+        "Comment": app.models.Comment,
+        "Note": app.models.Note,
     }
 
-from app import routes, models
+from app import routes
+from app.models import User, Post, Comment, Favorite, Note
 from app.routes import session, favorites, posts, comments, users, rapidapi, notes
