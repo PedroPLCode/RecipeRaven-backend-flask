@@ -38,6 +38,8 @@ mail = Mail(app)
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+app.secret_key = b'my-super-top-secret-key'
+
 #app.config['JWT_TOKEN_LOCATION'] = ['cookies'] # NOT SURE?
 #jwt_token = request.cookies.get('access_token_cookie') # Demonstration how to get the cookie
 
@@ -65,6 +67,8 @@ def make_shell_context():
         "Note": app.models.Note,
     }
 
-from app import routes
+from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes
 from app.models import User, Post, Comment, Favorite, Note
-from app.routes import session, favorites, posts, comments, users, rapidapi, notes
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
