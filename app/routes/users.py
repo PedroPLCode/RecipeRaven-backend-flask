@@ -105,7 +105,7 @@ def create_user():
             picture.save(filepath)
 
         new_user = User(login=login,
-                        google_login = False,
+                        google_user = False,
                         password=password,
                         email=email,
                         name=name if name else '',

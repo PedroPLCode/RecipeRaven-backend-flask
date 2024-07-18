@@ -23,6 +23,8 @@ def get_posts():
                 'author': post.user.name or post.user.login if post.user else None,
                 'guest_author': post.guest_author if post.guest_author else None,
                 'author_picture': post.user.picture if post.user else None,
+                'author_google_user': post.user.google_user if post.user else None,
+                'author_original_google_picture': post.user.original_google_picture if post.user else None,
                 'creation_date': post.creation_date,
                 'last_update': post.last_update,
                 'comments': []
