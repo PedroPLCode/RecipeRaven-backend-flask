@@ -1,3 +1,4 @@
+from sqlalchemy import Integer, String, cast
 from app import app, db
 from app.models import User, Favorite, Note
 from app.utils import *
@@ -45,6 +46,19 @@ def create_favorite():
         if user:
             new_favorite = {}
             new_favorite['data'] = json.loads(request.data)
+            
+            try:
+                calories_value = int(new_favorite['data']['calories'])
+                user_favorites = Favorite.query.filter_by(user_id=user.id).all()
+                for single_favorite in user_favorites:
+                    single_favorite_calories = int(single_favorite.data.get('data', {}).get('calories', 0))
+                    print(f"Existing favorite calories: {single_favorite_calories}")
+                    print(f"New favorite calories: {calories_value}")
+                    if single_favorite_calories == calories_value:
+                        return jsonify({"msg": "Favorite already exists."}), 400
+            except Exception as e:
+                print(f"Query error: {str(e)}")
+                return jsonify({"msg": f"Error querying database: {e}"}), 500
             
             image_url = new_favorite['data'].get('image_REGULAR_url') or new_favorite['data'].get('image_SMALL_url')
             if image_url:

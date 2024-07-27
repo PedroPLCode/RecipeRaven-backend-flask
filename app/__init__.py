@@ -10,6 +10,13 @@ from flask_jwt_extended import JWTManager
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 import os
 from itsdangerous import URLSafeTimedSerializer, BadSignature
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename="repipe_raven.log"
+                    )
+logging.info('starting app')
 
 app = Flask(__name__, static_folder='static')
 
