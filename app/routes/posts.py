@@ -15,12 +15,12 @@ def get_posts():
         results = []
         
         for post in all_posts:
-            creation_date_str = str(post.creation_date)
-            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f")
-            formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
-            modification_date_str = str(post.creation_date)
-            modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f")
-            formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
+            creation_date_str = str(post.creation_date) if post.creation_date else None
+            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
+            formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
+            modification_date_str = str(post.last_update) if post.last_update else None
+            modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f") if modification_date_str else None
+            formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if modification_date_obj else None
             temp = {
                 'id': post.id,
                 'user_id': post.user_id,
@@ -38,12 +38,12 @@ def get_posts():
 
             post_comments = Comment.query.filter_by(post_id=post.id).all()
             for comment in post_comments:
-                creation_date_str = str(post.creation_date)
-                creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f")
-                formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
-                modification_date_str = str(post.creation_date)
-                modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f")
-                formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
+                creation_date_str = str(comment.creation_date) if comment.creation_date else None
+                creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
+                formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
+                modification_date_str = str(comment.last_update) if comment.last_update else None
+                modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f") if modification_date_str else None
+                formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if modification_date_obj else None
                 temp['comments'].append({
                     'id': comment.id,
                     'user_id': comment.user_id,
