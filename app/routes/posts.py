@@ -15,6 +15,12 @@ def get_posts():
         results = []
         
         for post in all_posts:
+            creation_date_str = str(post.creation_date)
+            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f")
+            formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
+            modification_date_str = str(post.creation_date)
+            modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f")
+            formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
             temp = {
                 'id': post.id,
                 'user_id': post.user_id,
@@ -25,21 +31,27 @@ def get_posts():
                 'author_picture': post.user.picture if post.user else None,
                 'author_google_user': post.user.google_user if post.user else None,
                 'author_original_google_picture': post.user.original_google_picture if post.user else None,
-                'creation_date': post.creation_date,
-                'last_update': post.last_update,
+                'creation_date': formatted_creation_date,
+                'last_update': formatted_modification_date,
                 'comments': []
             }
 
             post_comments = Comment.query.filter_by(post_id=post.id).all()
             for comment in post_comments:
+                creation_date_str = str(post.creation_date)
+                creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f")
+                formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
+                modification_date_str = str(post.creation_date)
+                modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f")
+                formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET")
                 temp['comments'].append({
                     'id': comment.id,
                     'user_id': comment.user_id,
                     'content': comment.content,
                     'author': comment.user.name or comment.user.login if comment.user else None,
                     'guest_author': comment.guest_author if comment.guest_author else None,
-                    'creation_date': comment.creation_date,
-                    'last_update': comment.last_update,
+                    'creation_date': formatted_creation_date,
+                    'last_update': formatted_modification_date,
                 })
                 
             results.append(temp)
