@@ -34,6 +34,18 @@ def get_user():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()  
         
+        creation_date_str = str(user.creation_date) if user.creation_date else None
+        creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
+        formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
+                
+        last_login_str = str(user.last_login) if user.last_login else None
+        last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S.%f") if last_login_str else None
+        formatted_last_login = last_login_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_login_obj else None
+                
+        last_activity_str = str(dt.utcnow())
+        last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S.%f") if last_activity_str else None
+        formatted_last_activity = last_activity_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_activity_obj else None
+        
         if user:            
             user_data = {
                 "id": user.id,
@@ -44,9 +56,9 @@ def get_user():
                 "name": user.name,
                 "about": user.about,
                 "picture": user.picture,
-                "last_login": user.last_login,
-                "last_api_activity": dt.utcnow(),
-                "creation_date": user.creation_date,
+                "creation_date": formatted_creation_date,
+                "last_login": formatted_last_login,
+                "last_api_activity": formatted_last_activity,
                 "favorites_count": len(user.favorites),
                 "posts_count": len(user.posts),
                 "comments_count": len(user.comments),
