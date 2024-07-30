@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Comment
+from app.models import User, Comment, Post
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -77,22 +77,27 @@ def update_comments(comment_id):
         return {"msg": str(e)}, 401
     
 
+from sqlalchemy.orm import joinedload
+
 @app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
-def delete_comment(comment_id: int):
+def delete_comment(comment_id):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        
+
         comment_to_delete = Comment.query.filter(
-            (Comment.id == comment_id) & 
-            ((Comment.user_id == user.id) | (user.id == Config.admin_id))
+            (Comment.id == comment_id)
+        ).join(Post).filter(
+            (Comment.user_id == user.id) | 
+            (user.id == Config.admin_id) | 
+            (Post.user_id == user.id)
         ).first_or_404()
-        
+
         db.session.delete(comment_to_delete)
         db.session.commit()
-        
-        return {"msg": "Comment deleted successfully"}, 200
+
+        return jsonify({"msg": "Comment deleted successfully"}), 200
     except Exception as e:
-        return {"msg": str(e)}, 401
+        return jsonify({"msg": str(e)}), 401

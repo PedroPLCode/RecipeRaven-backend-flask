@@ -111,13 +111,13 @@ def update_post(post_id):
         
         return jsonify({"message": "Post updated successfully", "location": f'/posts/{post.id}'}), 200
     except Exception as e:
-        return {"msg": str(e)}, 401
+        return jsonify({"msg": str(e)}), 401
 
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 @cross_origin()
 @jwt_required()
-def delete_post(post_id: int):
+def delete_post(post_id):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() 
@@ -136,4 +136,4 @@ def delete_post(post_id: int):
                 db.session.commit()
                 return jsonify(post_to_delete), 200
     except Exception as e:
-        return {"msg": str(e)}, 401
+        return jsonify({"msg": str(e)}), 401
