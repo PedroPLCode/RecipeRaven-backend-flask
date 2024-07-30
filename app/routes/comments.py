@@ -54,8 +54,8 @@ def update_comments(comment_id):
     try:
         data = request.get_json()
         
-        if not data:
-            return jsonify({"message": "No input data provided"}), 400
+        if not data or not data["content"]:
+            return jsonify({"message": "No input data provided or missing data"}), 400
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
@@ -64,11 +64,8 @@ def update_comments(comment_id):
             ((Comment.user_id == user.id) | (user.id == Config.admin_id))
         ).first_or_404()
         
-        if data["content"] == '':
-            db.session.delete(comment)
-        else:
-            comment.content = data["content"]
-            comment.last_update = dt.utcnow()
+        comment.content = data["content"]
+        comment.last_update = dt.utcnow()
         
         db.session.commit()
         

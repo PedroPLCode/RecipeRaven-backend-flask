@@ -68,8 +68,8 @@ def create_post():
     try:
         data = request.get_json()
         
-        if not data:
-            return jsonify({"message": "No input data provided"}), 400
+        if not data or not data["title"] or not data["content"]:
+            return jsonify({"message": "No input data provided or missing data"}), 400
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
