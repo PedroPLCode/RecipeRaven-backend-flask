@@ -6,6 +6,7 @@ from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from config import Config
+from sqlalchemy.orm import joinedload
 
 @app.route('/api/comments', methods=['GET'])
 @cross_origin()
@@ -73,8 +74,6 @@ def update_comments(comment_id):
     except Exception as e:
         return {"msg": str(e)}, 401
     
-
-from sqlalchemy.orm import joinedload
 
 @app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
 @cross_origin()

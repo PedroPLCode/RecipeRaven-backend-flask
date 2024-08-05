@@ -72,10 +72,12 @@ def make_shell_context():
         "Post": app.models.Post,
         "Comment": app.models.Comment,
         "Note": app.models.Note,
+        "News": app.models.News,
+        "Reaction": app.models.Reaction,
     }
 
-from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes
-from app.models import User, Post, Comment, Favorite, Note
+from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions
+from app.models import User, Post, Comment, Favorite, Note, News, Reaction
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
