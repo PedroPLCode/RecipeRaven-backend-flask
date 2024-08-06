@@ -36,8 +36,8 @@ def get_posts():
                 'comments': []
             }
 
-            post_comments = Comment.query.filter_by(post_id=post.id).all()
-            for comment in post_comments:
+            #post_comments = Comment.query.filter_by(post_id=post.id).all()
+            for comment in post.comments:
                 creation_date_str = str(comment.creation_date) if comment.creation_date else None
                 creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
                 formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None

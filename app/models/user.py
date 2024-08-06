@@ -17,6 +17,8 @@ class User(db.Model):
     favorites = db.relationship("Favorite", backref="user")
     posts = db.relationship("Post", backref="user")
     comments = db.relationship("Comment", backref="user")
+    news = db.relationship("News", backref="user")
+    reactions = db.relationship("Reaction", backref="user")
     
     @property
     def password(self):
@@ -32,3 +34,5 @@ class User(db.Model):
 from .post import Post
 from .comment import Comment
 from .favorite import Favorite
+from .news import News
+from .reactions import Reaction

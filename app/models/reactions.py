@@ -11,4 +11,4 @@ class Reaction(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
 from .user import User
-from .post import Post
+from .news import News

@@ -31,8 +31,8 @@ def get_news():
                 'reactions': []
             }
 
-            news_reactions = Reaction.query.filter_by(news_id=news.id).all()
-            for reaction in news_reactions:
+            #news_reactions = Reaction.query.filter_by(news_id=news.id).all()
+            for reaction in news.reactions:
                 creation_date_str = str(reaction.creation_date) if reaction.creation_date else None
                 creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
                 formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
