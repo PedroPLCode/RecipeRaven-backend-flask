@@ -26,10 +26,6 @@ def get_news():
                 'user_id': news.user_id,
                 'content': news.content,
                 'title': news.title,
-                'author': news.user.name or news.user.login if news.user else None,
-                'author_picture': news.user.picture if news.user else None,
-                'author_google_user': news.user.google_user if news.user else None,
-                'author_original_google_picture': news.user.original_google_picture if news.user else None,
                 'creation_date': formatted_creation_date,
                 'last_update': formatted_modification_date,
                 'reactions': []
@@ -129,7 +125,7 @@ def delete_news(news_id):
             
             news_reactions = Reaction.query.filter(Reaction.news_id == news_to_delete.id).first()
             if news_reactions:
-                return {'Error. News still have comments. Cant delete'}, 400
+                return {'Error. News still have reactions. Cant delete'}, 400
             else: 
                 db.session.delete(news_to_delete)
                 db.session.commit()
