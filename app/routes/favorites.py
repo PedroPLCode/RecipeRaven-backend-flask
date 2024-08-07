@@ -28,6 +28,8 @@ def get_favorites():
             note = Note.query.filter_by(favorite_id=favorite.id).first()
             favorite_data['note'] = note.to_dict() if note else None
             
+            favorite_data['starred'] = True if favorite.starred else False
+            
             results.append(favorite_data)
         
         return jsonify(results), 200
@@ -80,7 +82,7 @@ def create_favorite():
                 except Exception as e:
                     return {"msg": f"Failed to save image: {str(e)}"}, 500
 
-            favorite = Favorite(data=new_favorite, user_id=user.id)
+            favorite = Favorite(data=new_favorite, user_id=user.id, starred=False)
             db.session.add(favorite)
             
             note = Note(favorite_id=favorite.id, content='')
@@ -125,3 +127,29 @@ def delete_favorite(favorite_to_delete_id: int):
             return {"msg": f"An error occurred during deletion: {str(e)}"}, 500
     except Exception as e:
         return {"msg": str(e)}, 404
+    
+
+@app.route('/api/favorites/starred/<int:favorite_id>', methods=['POST', 'DELETE'])
+@cross_origin()
+@jwt_required()
+def handle_starred_favorite(favorite_id: int):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404(description="User not found")
+        favorite = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404(description="Favorite not found")
+
+        try:
+            if request.method == 'POST':
+                favorite.starred = True
+                db.session.commit()
+                return jsonify({"msg": "Favorite starred successfully", "favorite": favorite.to_dict()}), 200
+            elif request.method == 'DELETE':
+                favorite.starred = False
+                db.session.commit()
+                return jsonify({"msg": "Favorite unstarred successfully", "favorite": favorite.to_dict()}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"msg": f"An error occurred: {str(e)}"}), 500
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 404
