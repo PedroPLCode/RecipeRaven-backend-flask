@@ -109,8 +109,9 @@ def add_like_reaction(reaction_id):
         reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
         
         like_exists = ReactionLikeIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
-        if like_exists:
-            return jsonify({"message": "Like already exists"}), 200
+        hate_exists = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like od Hate already exists"}), 200
         else:    
             new_like = ReactionLikeIt(user_id=user.id, reaction_id=reaction.id)
             db.session.add(new_like)
@@ -151,9 +152,10 @@ def add_hate_reaction(reaction_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
         
+        like_exists = ReactionLikeIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
         hate_exists = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
-        if hate_exists:
-            return jsonify({"message": "hate already exists"}), 200
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like od Hate already exists"}), 200
         else:    
             new_hate = ReactionHateIt(user_id=user.id, reaction_id=reaction.id)
             db.session.add(new_hate)

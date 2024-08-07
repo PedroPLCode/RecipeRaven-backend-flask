@@ -148,8 +148,9 @@ def add_like_news(news_id):
         news = News.query.filter((News.id == news_id)).first_or_404()
         
         like_exists = NewsLikeIt.query.filter_by(user_id=user.id, news_id=news.id).first()
-        if like_exists:
-            return jsonify({"message": "Like already exists"}), 200
+        hate_exists = NewsHateIt.query.filter_by(user_id=user.id, news_id=news.id).first()
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like or Hate already exists"}), 200
         else:    
             new_like = NewsLikeIt(user_id=user.id, news_id=news.id)
             db.session.add(new_like)
@@ -190,9 +191,10 @@ def add_hate_news(news_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         news = News.query.filter((News.id == news_id)).first_or_404()
         
+        like_exists = NewsLikeIt.query.filter_by(user_id=user.id, news_id=news.id).first()
         hate_exists = NewsHateIt.query.filter_by(user_id=user.id, news_id=news.id).first()
-        if hate_exists:
-            return jsonify({"message": "hate already exists"}), 200
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like or Hate already exists"}), 200
         else:    
             new_hate = NewsHateIt(user_id=user.id, news_id=news.id)
             db.session.add(new_hate)

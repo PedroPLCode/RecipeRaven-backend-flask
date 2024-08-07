@@ -153,8 +153,9 @@ def add_like_post(post_id):
         post = Post.query.filter((Post.id == post_id)).first_or_404()
         
         like_exists = PostLikeIt.query.filter_by(user_id=user.id, post_id=post.id).first()
-        if like_exists:
-            return jsonify({"message": "Like already exists"}), 200
+        hate_exists = PostHateIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like or Hate already exists"}), 200
         else:    
             new_like = PostLikeIt(user_id=user.id, post_id=post.id)
             db.session.add(new_like)
@@ -195,9 +196,10 @@ def add_hate_post(post_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         post = Post.query.filter((Post.id == post_id)).first_or_404()
         
+        like_exists = PostLikeIt.query.filter_by(user_id=user.id, post_id=post.id).first()
         hate_exists = PostHateIt.query.filter_by(user_id=user.id, post_id=post.id).first()
-        if hate_exists:
-            return jsonify({"message": "Hate already exists"}), 200
+        if like_exists or hate_exists:
+            return jsonify({"message": "Like or Hate already exists"}), 200
         else:    
             new_hate = PostHateIt(user_id=user.id, post_id=post.id)
             db.session.add(new_hate)

@@ -108,9 +108,10 @@ def add_like_comment(comment_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
         
+        hate_exists = CommentHateIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
         like_exists = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
-        if like_exists:
-            return jsonify({"message": "Like already exists"}), 200
+        if like_exists or hate_exists:
+            return jsonify({"message": "like or hate already exists"}), 200
         else:    
             new_like = CommentLikeIt(user_id=user.id, comment_id=comment.id)
             db.session.add(new_like)
@@ -152,8 +153,9 @@ def add_hate_comment(comment_id):
         comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
         
         hate_exists = CommentHateIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
-        if hate_exists:
-            return jsonify({"message": "hate already exists"}), 200
+        like_exists = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
+        if like_exists or hate_exists:
+            return jsonify({"message": "like or hate already exists"}), 200
         else:    
             new_hate = CommentHateIt(user_id=user.id, comment_id=comment.id)
             db.session.add(new_hate)
