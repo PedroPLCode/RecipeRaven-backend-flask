@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, News, Reaction
+from app.models import User, News, Reaction, NewsLikeIt, NewsHateIt
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -28,7 +28,9 @@ def get_news():
                 'title': news.title,
                 'creation_date': formatted_creation_date,
                 'last_update': formatted_modification_date,
-                'reactions': []
+                'reactions': [],
+                'likes': [like.user_id for like in news.likes],
+                'hates': [hate.user_id for hate in news.hates],
             }
 
             #news_reactions = Reaction.query.filter_by(news_id=news.id).all()
@@ -47,6 +49,8 @@ def get_news():
                     'guest_author': reaction.guest_author if reaction.guest_author else None,
                     'creation_date': formatted_creation_date,
                     'last_update': formatted_modification_date,
+                    'likes': [like.user_id for like in reaction.likes],
+                    'hates': [hate.user_id for hate in reaction.hates],
                 })
                 
             results.append(temp)
@@ -130,5 +134,91 @@ def delete_news(news_id):
                 db.session.delete(news_to_delete)
                 db.session.commit()
                 return jsonify(news_to_delete), 200
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/news/like/<int:news_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_like_news(news_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        news = News.query.filter((News.id == news_id)).first_or_404()
+        
+        like_exists = NewsLikeIt.query.filter_by(user_id=user.id, news_id=news.id).first()
+        if like_exists:
+            return jsonify({"message": "Like already exists"}), 200
+        else:    
+            new_like = NewsLikeIt(user_id=user.id, news_id=news.id)
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({"message": "Like added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/news/like/<int:news_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_like_news(news_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        news = News.query.filter((News.id == news_id)).first_or_404()
+    
+        like_to_delete = NewsLikeIt.query.filter_by(user_id=user.id, news_id=news.id).first()
+        if like_to_delete:
+            db.session.delete(like_to_delete)
+            db.session.commit()
+            return jsonify({"message": "Like deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "Like not exists"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/news/hate/<int:news_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_hate_news(news_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        news = News.query.filter((News.id == news_id)).first_or_404()
+        
+        hate_exists = NewsHateIt.query.filter_by(user_id=user.id, news_id=news.id).first()
+        if hate_exists:
+            return jsonify({"message": "hate already exists"}), 200
+        else:    
+            new_hate = NewsHateIt(user_id=user.id, news_id=news.id)
+            db.session.add(new_hate)
+            db.session.commit()
+            return jsonify({"message": "hate added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/news/hate/<int:news_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_hate_news(news_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        news = News.query.filter((News.id == news_id)).first_or_404()
+    
+        hate_to_delete = NewsHateIt.query.filter_by(user_id=user.id, news_id=news.id).first()
+        if hate_to_delete:
+            db.session.delete(hate_to_delete)
+            db.session.commit()
+            return jsonify({"message": "hate deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "hate not exists"}), 200
+        
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

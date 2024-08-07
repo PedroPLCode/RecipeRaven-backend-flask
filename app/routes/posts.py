@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Post, Comment
+from app.models import User, Post, Comment, PostLikeIt, PostHateIt
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -33,7 +33,9 @@ def get_posts():
                 'author_original_google_picture': post.user.original_google_picture if post.user else None,
                 'creation_date': formatted_creation_date,
                 'last_update': formatted_modification_date,
-                'comments': []
+                'comments': [],
+                'likes': [like.user_id for like in post.likes],
+                'hates': [hate.user_id for hate in post.hates],
             }
 
             #post_comments = Comment.query.filter_by(post_id=post.id).all()
@@ -52,6 +54,8 @@ def get_posts():
                     'guest_author': comment.guest_author if comment.guest_author else None,
                     'creation_date': formatted_creation_date,
                     'last_update': formatted_modification_date,
+                    'likes': [like.user_id for like in comment.likes],
+                    'hates': [hate.user_id for hate in comment.hates],
                 })
                 
             results.append(temp)
@@ -135,5 +139,91 @@ def delete_post(post_id):
                 db.session.delete(post_to_delete)
                 db.session.commit()
                 return jsonify(post_to_delete), 200
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+
+@app.route('/api/posts/like/<int:post_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_like_post(post_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        post = Post.query.filter((Post.id == post_id)).first_or_404()
+        
+        like_exists = PostLikeIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if like_exists:
+            return jsonify({"message": "Like already exists"}), 200
+        else:    
+            new_like = PostLikeIt(user_id=user.id, post_id=post.id)
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({"message": "Like added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/posts/like/<int:post_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_like_post(post_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        post = Post.query.filter((Post.id == post_id)).first_or_404()
+    
+        like_to_delete = PostLikeIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if like_to_delete:
+            db.session.delete(like_to_delete)
+            db.session.commit()
+            return jsonify({"message": "Like deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "Like not exists"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+
+@app.route('/api/posts/hate/<int:post_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_hate_post(post_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        post = Post.query.filter((Post.id == post_id)).first_or_404()
+        
+        hate_exists = PostHateIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if hate_exists:
+            return jsonify({"message": "Hate already exists"}), 200
+        else:    
+            new_hate = PostHateIt(user_id=user.id, post_id=post.id)
+            db.session.add(new_hate)
+            db.session.commit()
+            return jsonify({"message": "Hate added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/posts/hate/<int:post_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_hate_post(post_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        post = Post.query.filter((Post.id == post_id)).first_or_404()
+    
+        hate_to_delete = PostHateIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if hate_to_delete:
+            db.session.delete(hate_to_delete)
+            db.session.commit()
+            return jsonify({"message": "Hate deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "Hate not exists"}), 200
+        
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Reaction, News
+from app.models import User, Reaction, News, ReactionLikeIt, ReactionHateIt
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -95,5 +95,91 @@ def delete_reaction(reaction_id):
         db.session.commit()
 
         return jsonify({"msg": "Reaction deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+
+@app.route('/api/reactions/like/<int:reaction_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_like_reaction(reaction_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
+        
+        like_exists = ReactionLikeIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
+        if like_exists:
+            return jsonify({"message": "Like already exists"}), 200
+        else:    
+            new_like = ReactionLikeIt(user_id=user.id, reaction_id=reaction.id)
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({"message": "Like added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/reaction/like/<int:reaction_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_like_reaction(reaction_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
+    
+        like_to_delete = ReactionLikeIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
+        if like_to_delete:
+            db.session.delete(like_to_delete)
+            db.session.commit()
+            return jsonify({"message": "Like deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "Like not exists"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/reactions/hate/<int:reaction_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_hate_reaction(reaction_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
+        
+        hate_exists = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
+        if hate_exists:
+            return jsonify({"message": "hate already exists"}), 200
+        else:    
+            new_hate = ReactionHateIt(user_id=user.id, reaction_id=reaction.id)
+            db.session.add(new_hate)
+            db.session.commit()
+            return jsonify({"message": "hate added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/reaction/hate/<int:reaction_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_hate_reaction(reaction_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
+    
+        hate_to_delete = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
+        if hate_to_delete:
+            db.session.delete(hate_to_delete)
+            db.session.commit()
+            return jsonify({"message": "hate deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "hate not exists"}), 200
+        
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

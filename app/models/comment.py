@@ -9,6 +9,20 @@ class Comment(db.Model):
     last_update = db.Column(db.DateTime, nullable=True, default=None)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    likes = db.relationship('CommentLikeIt', backref='comment', lazy='dynamic')
+    hates = db.relationship('CommentHateIt', backref='comment', lazy='dynamic')
+    
+class CommentLikeIt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=dt.utcnow)
+    
+class CommentHateIt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=dt.utcnow)
     
 from .user import User
 from .post import Post

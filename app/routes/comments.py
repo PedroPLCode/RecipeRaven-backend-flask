@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, Comment, Post
+from app.models import User, Comment, Post, CommentLikeIt, CommentHateIt
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -95,5 +95,91 @@ def delete_comment(comment_id):
         db.session.commit()
 
         return jsonify({"msg": "Comment deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/comments/like/<int:comment_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_like_comment(comment_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
+        
+        like_exists = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
+        if like_exists:
+            return jsonify({"message": "Like already exists"}), 200
+        else:    
+            new_like = CommentLikeIt(user_id=user.id, comment_id=comment.id)
+            db.session.add(new_like)
+            db.session.commit()
+            return jsonify({"message": "Like added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/comments/like/<int:comment_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_like_comment(comment_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
+    
+        like_to_delete = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
+        if like_to_delete:
+            db.session.delete(like_to_delete)
+            db.session.commit()
+            return jsonify({"message": "Like deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "Like not exists"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/comments/hate/<int:comment_id>', methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_hate_comment(comment_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
+        
+        hate_exists = CommentHateIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
+        if hate_exists:
+            return jsonify({"message": "hate already exists"}), 200
+        else:    
+            new_hate = CommentHateIt(user_id=user.id, comment_id=comment.id)
+            db.session.add(new_hate)
+            db.session.commit()
+            return jsonify({"message": "hate added succesfully"}), 200
+        
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 401
+    
+    
+@app.route('/api/comments/hate/<int:comment_id>', methods=['DELETE'])
+@cross_origin()
+@jwt_required()
+def delete_hate_comment(comment_id):
+    try:
+        current_user = get_jwt_identity()
+        user = User.query.filter_by(login=current_user).first_or_404()
+        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
+    
+        hate_to_delete = CommentHateIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
+        if hate_to_delete:
+            db.session.delete(hate_to_delete)
+            db.session.commit()
+            return jsonify({"message": "hate deleted succesfully"}), 200
+        else:
+            return jsonify({"message": "hate not exists"}), 200
+        
     except Exception as e:
         return jsonify({"msg": str(e)}), 401
