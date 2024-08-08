@@ -6,7 +6,7 @@ class Favorite(db.Model):
     data = db.Column(db.JSON, nullable=False)
     note = db.relationship("Note", backref="favorite")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    starred = db.Column(db.Boolean, nullable=False, default=False)
+    starred = db.Column(db.Boolean, nullable=True)
     
     def to_dict(self):
         return {

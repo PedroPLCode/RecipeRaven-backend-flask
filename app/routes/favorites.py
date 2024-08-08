@@ -138,18 +138,16 @@ def handle_starred_favorite(favorite_id: int):
         user = User.query.filter_by(login=current_user).first_or_404(description="User not found")
         favorite = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404(description="Favorite not found")
 
-        try:
-            if request.method == 'POST':
-                favorite.starred = True
-                db.session.commit()
-                return jsonify({"msg": "Favorite starred successfully", "favorite": favorite.to_dict()}), 200
-            elif request.method == 'DELETE':
-                favorite.starred = False
-                db.session.commit()
-                return jsonify({"msg": "Favorite unstarred successfully", "favorite": favorite.to_dict()}), 200
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"msg": f"An error occurred: {str(e)}"}), 500
-        
+        if request.method == 'POST':
+            favorite.starred = True
+        elif request.method == 'DELETE':
+            favorite.starred = False
+        else:
+            return jsonify({"msg": "Invalid operation"}), 400 
+
+        db.session.commit()
+        return jsonify({"msg": "Operation successful", "favorite": favorite.to_dict()}), 200
+
     except Exception as e:
-        return jsonify({"msg": str(e)}), 404
+        db.session.rollback()
+        return jsonify({"msg": str(e)}), 500
