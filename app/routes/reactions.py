@@ -143,45 +143,57 @@ def delete_like_reaction(reaction_id):
         return jsonify({"msg": str(e)}), 401
     
     
-@app.route('/api/reactions/hate/<int:reaction_id>', methods=['POST'])
+@app.route('/api/reactions/<string:action>/<int:reaction_id>', methods=['POST', 'DELETE'])
 @cross_origin()
 @jwt_required()
-def add_hate_reaction(reaction_id):
+def manage_reaction_reactions(action, reaction_id):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
-        
+        reaction = Reaction.query.filter_by(id=reaction_id).first_or_404()
+
         like_exists = ReactionLikeIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
         hate_exists = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
-        if like_exists or hate_exists:
-            return jsonify({"message": "Like od Hate already exists"}), 200
-        else:    
-            new_hate = ReactionHateIt(user_id=user.id, reaction_id=reaction.id)
-            db.session.add(new_hate)
-            db.session.commit()
-            return jsonify({"message": "hate added succesfully"}), 200
-        
-    except Exception as e:
-        return jsonify({"msg": str(e)}), 401
-    
-    
-@app.route('/api/reaction/hate/<int:reaction_id>', methods=['DELETE'])
-@cross_origin()
-@jwt_required()
-def delete_hate_reaction(reaction_id):
-    try:
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404()
-        reaction = Reaction.query.filter((Reaction.id == reaction_id)).first_or_404()
-    
-        hate_to_delete = ReactionHateIt.query.filter_by(user_id=user.id, reaction_id=reaction.id).first()
-        if hate_to_delete:
-            db.session.delete(hate_to_delete)
-            db.session.commit()
-            return jsonify({"message": "hate deleted succesfully"}), 200
+
+        if action == 'like':
+            opposite_reaction = hate_exists
+            existing_reaction = like_exists
+            reaction_class = ReactionLikeIt
+            opposite_msg = "Hate removed. "
+            reaction_msg = "Like added successfully"
+            delete_msg = "Like deleted successfully"
+            not_exists_msg = "Like does not exist"
+        elif action == 'hate':
+            opposite_reaction = like_exists
+            existing_reaction = hate_exists
+            reaction_class = ReactionHateIt
+            opposite_msg = "Like removed. "
+            reaction_msg = "Hate added successfully"
+            delete_msg = "Hate deleted successfully"
+            not_exists_msg = "Hate does not exist"
         else:
-            return jsonify({"message": "hate not exists"}), 200
-        
+            return jsonify({"message": "Invalid action"}), 400
+
+        if request.method == 'POST':
+            if existing_reaction:
+                return jsonify({"message": f"{action.capitalize()} already exists"}), 200
+
+            if opposite_reaction:
+                db.session.delete(opposite_reaction)
+                db.session.commit()
+
+            new_reaction = reaction_class(user_id=user.id, reaction_id=reaction.id)
+            db.session.add(new_reaction)
+            db.session.commit()
+            return jsonify({"message": opposite_msg + reaction_msg}), 200
+
+        elif request.method == 'DELETE':
+            if existing_reaction:
+                db.session.delete(existing_reaction)
+                db.session.commit()
+                return jsonify({"message": delete_msg}), 200
+
+            return jsonify({"message": not_exists_msg}), 200
+
     except Exception as e:
-        return jsonify({"msg": str(e)}), 401
+        return jsonify({"message": str(e)}), 401
