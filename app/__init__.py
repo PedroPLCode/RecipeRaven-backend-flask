@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from flask_mail import Mail
 from flask.cli import load_dotenv
 from config import Config
@@ -60,6 +62,8 @@ CORS(app, resources={
     r"/api/*": {"origins": "*"},
 }, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], supports_credentials=True)
 
+admin = Admin(app, name='My Admin Panel', template_mode='bootstrap4')
+
 from app.routes import routes as routes_blueprint
 app.register_blueprint(routes_blueprint, url_prefix='/')
 
@@ -76,8 +80,9 @@ def make_shell_context():
         "Reaction": app.models.Reaction,
     }
 
-from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions
-from app.models import User, Post, Comment, Favorite, Note, News, Reaction
+from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions, admin
+from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt
+from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
