@@ -143,7 +143,7 @@ def delete_post(post_id):
         return jsonify({"msg": str(e)}), 401
     
 
-@app.route('/api/posts/<string:action>/<int:post_id>', methods=['POST', 'DELETE'])
+@app.route('/api/posts/<string:action>/<int:post_id>', methods=['POST'])
 @cross_origin()
 @jwt_required()
 def manage_reaction_post(action, post_id):
@@ -162,7 +162,6 @@ def manage_reaction_post(action, post_id):
             opposite_msg = "Hate removed. "
             reaction_msg = "Like added successfully"
             delete_msg = "Like deleted successfully"
-            not_exists_msg = "Like does not exist"
         elif action == 'hate':
             opposite_reaction = like_exists
             existing_reaction = hate_exists
@@ -170,30 +169,22 @@ def manage_reaction_post(action, post_id):
             opposite_msg = "Like removed. "
             reaction_msg = "Hate added successfully"
             delete_msg = "Hate deleted successfully"
-            not_exists_msg = "Hate does not exist"
         else:
             return jsonify({"message": "Invalid action"}), 400
 
-        if request.method == 'POST':
-            if existing_reaction:
-                return jsonify({"message": f"{action.capitalize()} already exists"}), 200
-
-            if opposite_reaction:
-                db.session.delete(opposite_reaction)
-                db.session.commit()
-
-            new_reaction = reaction_class(user_id=user.id, post_id=post.id)
-            db.session.add(new_reaction)
+        if existing_reaction:
+            db.session.delete(existing_reaction)
             db.session.commit()
-            return jsonify({"message": opposite_msg + reaction_msg}), 200
+            return jsonify({"message": delete_msg}), 200
 
-        elif request.method == 'DELETE':
-            if existing_reaction:
-                db.session.delete(existing_reaction)
-                db.session.commit()
-                return jsonify({"message": delete_msg}), 200
+        if opposite_reaction:
+            db.session.delete(opposite_reaction)
+            db.session.commit()
 
-            return jsonify({"message": not_exists_msg}), 200
+        new_reaction = reaction_class(user_id=user.id, post_id=post.id)
+        db.session.add(new_reaction)
+        db.session.commit()
+        return jsonify({"message": opposite_msg + reaction_msg}), 200
 
     except Exception as e:
         return jsonify({"message": str(e)}), 401

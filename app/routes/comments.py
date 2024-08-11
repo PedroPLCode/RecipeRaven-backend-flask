@@ -99,50 +99,6 @@ def delete_comment(comment_id):
         return jsonify({"msg": str(e)}), 401
     
     
-@app.route('/api/comments/like/<int:comment_id>', methods=['POST'])
-@cross_origin()
-@jwt_required()
-def add_like_comment(comment_id):
-    try:
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404()
-        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
-        
-        hate_exists = CommentHateIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
-        like_exists = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
-        if like_exists or hate_exists:
-            return jsonify({"message": "like or hate already exists"}), 200
-        else:    
-            new_like = CommentLikeIt(user_id=user.id, comment_id=comment.id)
-            db.session.add(new_like)
-            db.session.commit()
-            return jsonify({"message": "Like added succesfully"}), 200
-        
-    except Exception as e:
-        return jsonify({"msg": str(e)}), 401
-    
-    
-@app.route('/api/comments/like/<int:comment_id>', methods=['DELETE'])
-@cross_origin()
-@jwt_required()
-def delete_like_comment(comment_id):
-    try:
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404()
-        comment = Comment.query.filter((Comment.id == comment_id)).first_or_404()
-    
-        like_to_delete = CommentLikeIt.query.filter_by(user_id=user.id, comment_id=comment.id).first()
-        if like_to_delete:
-            db.session.delete(like_to_delete)
-            db.session.commit()
-            return jsonify({"message": "Like deleted succesfully"}), 200
-        else:
-            return jsonify({"message": "Like not exists"}), 200
-        
-    except Exception as e:
-        return jsonify({"msg": str(e)}), 401
-    
-    
 @app.route('/api/comments/<string:action>/<int:comment_id>', methods=['POST', 'DELETE'])
 @cross_origin()
 @jwt_required()
@@ -162,7 +118,6 @@ def manage_reaction_comment(action, comment_id):
             opposite_msg = "Hate removed. "
             reaction_msg = "Like added successfully"
             delete_msg = "Like deleted successfully"
-            not_exists_msg = "Like does not exist"
         elif action == 'hate':
             opposite_reaction = like_exists
             existing_reaction = hate_exists
@@ -170,30 +125,22 @@ def manage_reaction_comment(action, comment_id):
             opposite_msg = "Like removed. "
             reaction_msg = "Hate added successfully"
             delete_msg = "Hate deleted successfully"
-            not_exists_msg = "Hate does not exist"
         else:
             return jsonify({"message": "Invalid action"}), 400
 
-        if request.method == 'POST':
-            if existing_reaction:
-                return jsonify({"message": f"{action.capitalize()} already exists"}), 200
-
-            if opposite_reaction:
-                db.session.delete(opposite_reaction)
-                db.session.commit()
-
-            new_reaction = reaction_class(user_id=user.id, comment_id=comment.id)
-            db.session.add(new_reaction)
+        if existing_reaction:
+            db.session.delete(existing_reaction)
             db.session.commit()
-            return jsonify({"message": opposite_msg + reaction_msg}), 200
+            return jsonify({"message": delete_msg}), 200
 
-        elif request.method == 'DELETE':
-            if existing_reaction:
-                db.session.delete(existing_reaction)
-                db.session.commit()
-                return jsonify({"message": delete_msg}), 200
+        if opposite_reaction:
+            db.session.delete(opposite_reaction)
+            db.session.commit()
 
-            return jsonify({"message": not_exists_msg}), 200
+        new_reaction = reaction_class(user_id=user.id, comment_id=comment.id)
+        db.session.add(new_reaction)
+        db.session.commit()
+        return jsonify({"message": opposite_msg + reaction_msg}), 200
 
     except Exception as e:
         return jsonify({"message": str(e)}), 401
