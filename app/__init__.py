@@ -62,7 +62,7 @@ CORS(app, resources={
     r"/api/*": {"origins": "*"},
 }, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], supports_credentials=True)
 
-admin = Admin(app, name='My Admin Panel', template_mode='bootstrap4')
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap4')
 
 from app.routes import routes as routes_blueprint
 app.register_blueprint(routes_blueprint, url_prefix='/')

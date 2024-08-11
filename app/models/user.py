@@ -1,13 +1,15 @@
 from app import db
+from flask_login import UserMixin
 from datetime import datetime as dt
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     login = db.Column(db.String(80), unique=True, nullable=False)
-    google_user = db.Column(db.Boolean, nullable=False)
+    role = db.Column(db.String(80), unique=False, nullable=True)
+    google_user = db.Column(db.Boolean, nullable=False, default=False)
     original_google_picture = db.Column(db.Boolean, nullable=True)
-    password_hash = db.Column(db.String(128), nullable=True)
+    password_hash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(80), nullable=False)
     name = db.Column(db.String(80), nullable=True)
     about = db.Column(db.String(80), nullable=True)
@@ -38,6 +40,9 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_id(self):
+        return str(self.id)
     
 from .post import Post
 from .comment import Comment
