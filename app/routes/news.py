@@ -1,5 +1,5 @@
 from app import app, db
-from app.models import User, News, Reaction, NewsLikeIt, NewsHateIt
+from app.models import User, News, Reaction
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
@@ -33,7 +33,6 @@ def get_news():
                 'hates': [hate.user_id for hate in news.hates],
             }
 
-            #news_reactions = Reaction.query.filter_by(news_id=news.id).all()
             for reaction in news.reactions:
                 creation_date_str = str(reaction.creation_date) if reaction.creation_date else None
                 creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
@@ -136,50 +135,3 @@ def delete_news(news_id):
                 return jsonify(news_to_delete), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401
-    
-    
-@app.route('/api/news/<string:action>/<int:news_id>', methods=['POST', 'DELETE'])
-@cross_origin()
-@jwt_required()
-def manage_reaction_news(action, news_id):
-    try:
-        current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404()
-        news = News.query.filter_by(id=news_id).first_or_404()
-
-        like_exists = NewsLikeIt.query.filter_by(user_id=user.id, news_id=news.id).first()
-        hate_exists = NewsHateIt.query.filter_by(user_id=user.id, news_id=news.id).first()
-
-        if action == 'like':
-            opposite_reaction = hate_exists
-            existing_reaction = like_exists
-            reaction_class = NewsLikeIt
-            opposite_msg = "Hate removed. "
-            reaction_msg = "Like added successfully"
-            delete_msg = "Like deleted successfully"
-        elif action == 'hate':
-            opposite_reaction = like_exists
-            existing_reaction = hate_exists
-            reaction_class = NewsHateIt
-            opposite_msg = "Like removed. "
-            reaction_msg = "Hate added successfully"
-            delete_msg = "Hate deleted successfully"
-        else:
-            return jsonify({"message": "Invalid action"}), 400
-
-        if existing_reaction:
-            db.session.delete(existing_reaction)
-            db.session.commit()
-            return jsonify({"message": delete_msg}), 200
-
-        if opposite_reaction:
-            db.session.delete(opposite_reaction)
-            db.session.commit()
-
-        new_reaction = reaction_class(user_id=user.id, news_id=news.id)
-        db.session.add(new_reaction)
-        db.session.commit()
-        return jsonify({"message": opposite_msg + reaction_msg}), 200
-
-    except Exception as e:
-        return jsonify({"message": str(e)}), 401

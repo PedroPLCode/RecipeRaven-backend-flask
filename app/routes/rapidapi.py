@@ -15,6 +15,7 @@ def fetch_receipes():
     ingredients_array = (data_dict.get('ingredients', False))
     excluded_array = (data_dict.get('excluded', False))
     params_array = (data_dict.get('params', False))
+    random = (data_dict.get('random', False))
     link_next_page = (data_dict.get('link_next_page'), False)
     
     headers = {
@@ -30,8 +31,8 @@ def fetch_receipes():
     else:
         url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
         querystring = {
-            "type":"any",
-            #"random":"true"
+            "type": "any",
+            "random": random,
         }
         
         diet_labels = ['low-carb', 'low-fat']

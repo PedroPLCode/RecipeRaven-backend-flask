@@ -1,15 +1,13 @@
 from flask_admin.contrib.sqla import ModelView
-from flask import render_template, request, redirect, url_for
+from flask import redirect, url_for
 from flask_login import current_user
 from config import Config
 
 class AdminModelView(ModelView):
     def is_accessible(self):
-        # Tylko zalogowani użytkownicy, którzy są adminami lub mają określony ID, mogą uzyskać dostęp
         return current_user.is_authenticated and (current_user.id == Config.admin_id or current_user.role == 'Admin')
 
     def inaccessible_callback(self, name, **kwargs):
-        # Przekierowanie na stronę logowania, jeśli użytkownik nie ma dostępu
         return redirect(url_for('admin_login'))
 
 class UserAdmin(AdminModelView):

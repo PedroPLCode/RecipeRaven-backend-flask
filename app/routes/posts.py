@@ -1,10 +1,10 @@
 from app import app, db
-from app.models import User, Post, Comment, PostLikeIt, PostHateIt
+from app.models import User, Post, Comment, PostLikeIt, PostHateIt, Reaction, ReactionLikeIt, ReactionHateIt, News, NewsLikeIt, NewsHateIt, Comment, CommentLikeIt, CommentHateIt
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
-from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from config import Config
 
 @app.route('/api/posts', methods=['GET'])
@@ -38,7 +38,6 @@ def get_posts():
                 'hates': [hate.user_id for hate in post.hates],
             }
 
-            #post_comments = Comment.query.filter_by(post_id=post.id).all()
             for comment in post.comments:
                 creation_date_str = str(comment.creation_date) if comment.creation_date else None
                 creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
@@ -143,29 +142,41 @@ def delete_post(post_id):
         return jsonify({"msg": str(e)}), 401
     
 
-@app.route('/api/posts/<string:action>/<int:post_id>', methods=['POST'])
+@app.route('/api/<string:object_type>/<string:action>/<int:object_id>', methods=['POST'])
 @cross_origin()
 @jwt_required()
-def manage_reaction_post(action, post_id):
+def manage_reaction(action, object_type, object_id):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        post = Post.query.filter_by(id=post_id).first_or_404()
+        
+        model_map = {
+            'comments': (Comment, CommentLikeIt, CommentHateIt, 'comment_id'),
+            'posts': (Post, PostLikeIt, PostHateIt, 'post_id'),
+            'news': (News, NewsLikeIt, NewsHateIt, 'news_id'),
+            'reactions': (Reaction, ReactionLikeIt, ReactionHateIt, 'reaction_id')
+        }
 
-        like_exists = PostLikeIt.query.filter_by(user_id=user.id, post_id=post.id).first()
-        hate_exists = PostHateIt.query.filter_by(user_id=user.id, post_id=post.id).first()
+        if object_type not in model_map:
+            return jsonify({"message": "Invalid object type"}), 400
+
+        model_class, like_class, hate_class, parent_field = model_map[object_type]
+        obj = model_class.query.filter_by(id=object_id).first_or_404()
+
+        like_exists = like_class.query.filter_by(user_id=user.id).filter(getattr(like_class, parent_field) == obj.id).first()
+        hate_exists = hate_class.query.filter_by(user_id=user.id).filter(getattr(hate_class, parent_field) == obj.id).first()
 
         if action == 'like':
             opposite_reaction = hate_exists
             existing_reaction = like_exists
-            reaction_class = PostLikeIt
+            reaction_class = like_class
             opposite_msg = "Hate removed. "
             reaction_msg = "Like added successfully"
             delete_msg = "Like deleted successfully"
         elif action == 'hate':
             opposite_reaction = like_exists
             existing_reaction = hate_exists
-            reaction_class = PostHateIt
+            reaction_class = hate_class
             opposite_msg = "Like removed. "
             reaction_msg = "Hate added successfully"
             delete_msg = "Hate deleted successfully"
@@ -181,10 +192,13 @@ def manage_reaction_post(action, post_id):
             db.session.delete(opposite_reaction)
             db.session.commit()
 
-        new_reaction = reaction_class(user_id=user.id, post_id=post.id)
+        new_reaction = reaction_class(user_id=user.id)
+        setattr(new_reaction, parent_field, obj.id)
+
         db.session.add(new_reaction)
         db.session.commit()
         return jsonify({"message": opposite_msg + reaction_msg}), 200
 
     except Exception as e:
-        return jsonify({"message": str(e)}), 401
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500

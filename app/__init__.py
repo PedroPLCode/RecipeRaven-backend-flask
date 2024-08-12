@@ -29,7 +29,7 @@ GOOGLE_SECRET_KEY = os.environ['GOOGLE_SECRET_KEY']
 GMAIL_APP_PASSWORD = os.environ['GMAIL_APP_PASSWORD']
 
 app.config.from_object(Config)
-app.config['SECRET_KEY'] = 'secret_key_here'  # Klucz tajny do podpisu tokena, lepiej przechowywać w konfiguracji aplikacji
+app.config['SECRET_KEY'] = 'secret_key_here' 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
@@ -73,11 +73,19 @@ def make_shell_context():
         "db": db,
         "User": app.models.User,
         "Favorite": app.models.Favorite,
-        "Post": app.models.Post,
-        "Comment": app.models.Comment,
         "Note": app.models.Note,
+        "Post": app.models.Post,
+        "PostLikeIt": app.models.PostLikeIt,
+        "PostHateIt": app.models.PostHateIt,
+        "Comment": app.models.Comment,
+        "CommentLikeIt": app.models.CommentLikeIt,
+        "CommentHateIt": app.models.CommentHateIt,
         "News": app.models.News,
+        "NewsLikeIt": app.models.NewsLikeIt,
+        "NewsHateIt": app.models.NewsHateIt,
         "Reaction": app.models.Reaction,
+        "ReactionLikeIt": app.models.ReactionLikeIt,
+        "ReactionHateIt": app.models.ReactionHateIt,
     }
 
 from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions, admin

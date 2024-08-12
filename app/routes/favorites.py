@@ -1,4 +1,3 @@
-from sqlalchemy import Integer, String, cast
 from app import app, db
 from app.models import User, Favorite, Note
 from app.utils import *
@@ -112,9 +111,9 @@ def delete_favorite(favorite_to_delete_id: int):
                 
                 if os.path.exists(image_to_delete):
                     os.remove(image_to_delete)
-                    print(f"Usunięto plik: {image_to_delete}")
+                    print(f"File Deleted: {image_to_delete}")
                 else:
-                    print(f"Plik nie istnieje: {image_to_delete}")
+                    print(f"File Not Exists: {image_to_delete}")
 
             if note_to_delete:
                 db.session.delete(note_to_delete)
@@ -129,7 +128,7 @@ def delete_favorite(favorite_to_delete_id: int):
         return {"msg": str(e)}, 404
     
 
-@app.route('/api/favorites/starred/<int:favorite_id>', methods=['POST', 'DELETE'])
+@app.route('/api/favorites/starred/<int:favorite_id>', methods=['POST'])
 @cross_origin()
 @jwt_required()
 def handle_starred_favorite(favorite_id: int):
@@ -138,13 +137,8 @@ def handle_starred_favorite(favorite_id: int):
         user = User.query.filter_by(login=current_user).first_or_404(description="User not found")
         favorite = Favorite.query.filter_by(id=favorite_id, user_id=user.id).first_or_404(description="Favorite not found")
 
-        if request.method == 'POST':
-            favorite.starred = True
-        elif request.method == 'DELETE':
-            favorite.starred = False
-        else:
-            return jsonify({"msg": "Invalid operation"}), 400 
-
+        favorite.starred = not favorite.starred
+        
         db.session.commit()
         return jsonify({"msg": "Operation successful", "favorite": favorite.to_dict()}), 200
 

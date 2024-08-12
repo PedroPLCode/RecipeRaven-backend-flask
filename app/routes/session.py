@@ -7,7 +7,7 @@ from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
 from app.models import User
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required
+                               unset_jwt_cookies
 import json
 import requests
 from dotenv import load_dotenv
