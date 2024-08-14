@@ -162,7 +162,10 @@ def manage_reaction(action, object_type, object_id):
 
         model_class, like_class, hate_class, parent_field = model_map[object_type]
         obj = model_class.query.filter_by(id=object_id).first_or_404()
-
+        
+        if user.id == obj.user_id:
+            return jsonify({"message": f'You cant add {action} to your own {object_type}'}), 500
+        
         like_exists = like_class.query.filter_by(user_id=user.id).filter(getattr(like_class, parent_field) == obj.id).first()
         hate_exists = hate_class.query.filter_by(user_id=user.id).filter(getattr(hate_class, parent_field) == obj.id).first()
 
