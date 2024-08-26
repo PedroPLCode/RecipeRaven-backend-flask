@@ -6,6 +6,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
 from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin
 from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt
+from app.utils import send_email
 
 admin.add_view(UserAdmin(User, db.session))
 admin.add_view(FavoriteAdmin(Favorite, db.session))
@@ -40,6 +41,25 @@ def load_user(user_id):
 @app.context_processor
 def inject_user():
     return dict(date_and_time=dt.utcnow())
+
+
+@app.route('/admin/newsletter', methods=['GET', 'POST'])
+@login_required
+def admin_newsletter():
+    if request.method == 'POST':
+        topic = request.form['topic']
+        content = request.form['content']
+        
+        all_users = User.query.all()
+        email_addresses = [user.email for user in all_users]
+        
+        for single_email in email_addresses:
+            send_email(single_email, topic, content)
+
+        flash(f'Newsletter został wysłany do {len(email_addresses)} odbiorców.', 'success')
+        return redirect(url_for('admin_newsletter'))
+    
+    return render_template('admin/newsletter.html')
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])

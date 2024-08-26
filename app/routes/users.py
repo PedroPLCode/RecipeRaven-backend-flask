@@ -2,6 +2,7 @@ from app import app, db, mail, serializer
 from flask_mail import Message
 from app.models import User, Favorite
 from app.utils import *
+from app.emails_templates import EMAIL_BODY
 from werkzeug.utils import secure_filename
 import os
 from flask import jsonify, request
@@ -127,8 +128,8 @@ def create_user():
         db.session.add(new_user)
         db.session.commit()
         
-        email_subject = 'Welcome in FoodApp test'
-        email_body = f'Hello {new_user.name.title()}'
+        email_subject = 'Welcome in Recipe Raven App'
+        email_body = EMAIL_BODY.format(username=new_user.name.title())
         send_email(new_user.email, email_subject, email_body)
         
         response = {"msg": "User created successfully"}
@@ -152,6 +153,10 @@ def change_user():
             try:
                 filename = secure_filename(file.filename)
                 filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+                
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                
                 file.save(filepath)
                 data['picture'] = filename
             except Exception as e:
@@ -159,6 +164,7 @@ def change_user():
 
         if 'picture' in data:
             user.picture = data['picture']
+            user.original_google_picture = False
 
         old_password = data.get("oldPassword")
         new_password = data.get("newPassword")
@@ -166,8 +172,8 @@ def change_user():
             if user.verify_password(old_password):
                 user.password = new_password
                 
-                email_subject = 'passwd changed'
-                email_body = f'Hello {user.name.title()}. passwd changed.'
+                email_subject = 'Welcome in Recipe Raven App passwd change'
+                email_body = EMAIL_BODY.format(username=user.name.title())
                 send_email(user.email, email_subject, email_body)
         
             else:
@@ -206,8 +212,8 @@ def delete_user():
             "about": user.about,
         }
         
-        email_subject = 'Bye bye FoodApp test'
-        email_body = f'Hello {user.name.title()}. Your account was deleted.'
+        email_subject = 'Welcome in Recipe Raven App'
+        email_body = EMAIL_BODY.format(username=user.name.title())
         send_email(user.email, email_subject, email_body)
             
         return response_body, 200
@@ -226,8 +232,11 @@ def reset_password_request():
             if user:
                 token = serializer.dumps(email_address, salt='reset-password')
                 reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
+                
                 email_subject = 'FoodApp passwd reset'
                 email_body = f'Hello {user.name.title()}. Passwd reset link {reset_url}'
+                # email_subject = 'Welcome in Recipe Raven App'
+                # email_body = EMAIL_BODY.format(username=user.name.title())
                 send_email(email_address, email_subject, email_body)
                 return jsonify({"reset_url": reset_url}), 200
         else:
@@ -254,8 +263,8 @@ def reset_password(token):
         user.password = new_password
         db.session.commit()
         
-        email_subject = 'passwd changed'
-        email_body = f'Hello {user.name.title()}. passwd changed.'
+        email_subject = 'Welcome in Recipe Raven App'
+        email_body = EMAIL_BODY.format(username=user.name.title())
         send_email(user.email, email_subject, email_body)
 
         return jsonify({"message": "Hasło zostało zresetowane"}), 200

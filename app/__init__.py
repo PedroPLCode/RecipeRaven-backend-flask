@@ -13,6 +13,7 @@ from flask_uploads import UploadSet, configure_uploads, IMAGES
 import os
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 import logging
+# from app.utils import send_email
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
@@ -44,6 +45,8 @@ app.config['MAIL_PASSWORD'] = GMAIL_APP_PASSWORD
 app.config['MAIL_DEFAULT_SENDER'] = 'piotrek.gaszczynski@gmail.com'
 
 mail = Mail(app)
+
+# send_email('piotrek.gaszczynski@gmail.com', 'asdsad', 'sadsadsadsad')
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
