@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script> 
 </head>
 <body>
-  <div class='d-flex flex-column justify-content-center align-items-center'>
+  <div class='mt-5 d-flex flex-column justify-content-center align-items-center'>
     {% with messages = get_flashed_messages(with_categories=True) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -19,8 +19,8 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-    <h4>Admin Login</h4>
-    <h5>{{ date_and_time }} </h5>
+    <h6>RecipeRaven Admin Login</h6>
+    <h6>{{ date_and_time }} </h6>
     <form class='d-flex flex-column justify-content-center align-items-center' method="POST">
         <input type="email" name="email" placeholder="email" id="email" required>
         <br>

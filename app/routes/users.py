@@ -1,6 +1,6 @@
 from app import app, db, mail, serializer
 from flask_mail import Message
-from app.models import User, Favorite
+from app.models import User, Favorite, Note
 from app.utils import *
 from app.emails_templates import EMAIL_BODY
 from werkzeug.utils import secure_filename
@@ -10,6 +10,7 @@ from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from itsdangerous import URLSafeTimedSerializer, BadSignature
+from pathlib import Path
 
 @app.route('/api/logins', methods=["GET"])
 @cross_origin()
@@ -113,7 +114,11 @@ def create_user():
         picture = request.files.get('picture')
         filename = None
         if picture:
-            filename = secure_filename(picture.filename)
+            
+            path = Path(picture.filename)
+            extension = path.suffix
+            
+            filename = f'{login}{extension}' # if login else secure_filename(picture.filename)
             filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
             picture.save(filepath)
 
@@ -150,13 +155,16 @@ def change_user():
 
         file = request.files.get('picture')
         if file:
-            try:
-                filename = secure_filename(file.filename)
+            try:    
+    
+                path = Path(file.filename)
+                extension = path.suffix
+                
+                filename = user.picture if user.picture else f'{user.login}{extension}' # secure_filename(file.filename)
                 filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
-                
                 if os.path.exists(filepath):
-                    os.remove(filepath)
-                
+                    os.remove(filepath) ### NOT SURE WILL WORK
+                    
                 file.save(filepath)
                 data['picture'] = filename
             except Exception as e:
@@ -201,8 +209,33 @@ def delete_user():
         user = User.query.filter_by(login=current_user).first_or_404()  
         user_favorites = Favorite.query.filter_by(user_id=user.id).all()
         
+        filename = user.picture if user.picture else None
+        filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename) if filename else None
+        if os.path.exists(filepath):
+            os.remove(filepath) ### NOT SURE WILL WORK
+        
         for favorite in user_favorites:
-            db.session.delete(favorite)
+            try:
+                if 'image_name' in favorite.data:
+                    image_name = favorite.data['image_name']
+                    image_to_delete = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], image_name)
+                    
+                    if os.path.exists(image_to_delete):
+                        os.remove(image_to_delete)
+                        print(f"File Deleted: {image_to_delete}")
+                    else:
+                        print(f"File Not Exists: {image_to_delete}")
+                        
+                note = Note.query.filter_by(favorite_id=favorite.id).first()
+                if note:
+                    db.session.delete(note)
+
+                db.session.delete(favorite)
+                
+            except Exception as e:
+                db.session.rollback()
+                return {"msg": f"An error occurred during deletion: {str(e)}"}, 500
+
         db.session.delete(user)
         db.session.commit()
         

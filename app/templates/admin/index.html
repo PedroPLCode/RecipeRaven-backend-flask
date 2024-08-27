@@ -3,13 +3,31 @@
 {% block body %}
 
 <div>
+    <script>
+        function confirmSend(event) {
+          var confirmed = confirm("Are you sure you want to send this newsletter?");
+          if (!confirmed) {
+              event.preventDefault();
+          }
+        }
+      </script>
     {% if current_user.is_authenticated %}
-        <p class='text-center'>{{ current_user.login }} logged in at {{ current_user.last_login }}</p>
-        <p class='text-center'>all good. db connected</p>
-        <p class='text-center'>python - flask - sqllite - sqlalchemy</p>
-        <div class='d-flex flex-row justify-content-center'>
-            <a href="/admin/newsletter">Newsletter</a>
-        </div>
+        <p class='pt-3 text-center'>{{ current_user.login }} logged in at {{ current_user.last_login }}</p>
+        <p class='pb-2 text-center'>all good. db connected</p>
+        <div class='mt-1 pt-4 mb-4 border-top border-dark d-flex flex-column justify-content-center align-items-center'>
+            <h6>Send Newsletter to All Users</h6>
+            <form class='mt-1 d-flex flex-column justify-content-center align-items-center' action="{{ url_for('admin_newsletter') }}" onsubmit="confirmSend(event)" method="POST">
+              <div class="form-group">
+                <input type="text" placeholder="title" id="topic" name="topic" required>
+              </div>
+              <div class="form-group">
+                <textarea id="content" placeholder="content" name="content" rows="10" required></textarea>
+              </div>
+              <button type="submit">Send Newsletter</button>
+            </form>
+      </div>
+        <p class='mt-1 pt-4 border-top border-dark text-center'>python - flask - sqllite - sqlalchemy</p>
+        <p class='mb-4 text-center'>RecipeRaven - PedroPLCode</p>
     {% else %}
         <p class='text-center'>log in to manage db and newsletter</p>
     {% endif %}

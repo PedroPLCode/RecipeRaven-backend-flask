@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
 from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin, NewsletterAdmin
-from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt
+from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt, Newsletter
 from app.utils import send_email
 
 admin.add_view(UserAdmin(User, db.session))
@@ -23,7 +23,7 @@ admin.add_view(NewsHateItAdmin(NewsHateIt, db.session))
 admin.add_view(ReactionAdmin(Reaction, db.session))
 admin.add_view(ReactionLikeItAdmin(ReactionLikeIt, db.session))
 admin.add_view(ReactionHateItAdmin(ReactionHateIt, db.session))
-admin.add_view(NewsletterAdmin(Post, db.session))
+admin.add_view(NewsletterAdmin(Newsletter, db.session))
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'admin_login'
@@ -44,23 +44,24 @@ def inject_user():
     return dict(date_and_time=dt.utcnow())
 
 
-@app.route('/admin/newsletter', methods=['GET', 'POST'])
+@app.route('/newsletter', methods=['POST'])
 @login_required
 def admin_newsletter():
-    if request.method == 'POST':
-        topic = request.form['topic']
-        content = request.form['content']
+    title = request.form['topic']
+    content = request.form['content']
         
-        all_users = User.query.all()
-        email_addresses = [user.email for user in all_users]
+    all_users = User.query.all()
+    email_addresses = [user.email for user in all_users]
         
-        for single_email in email_addresses:
-            send_email(single_email, topic, content)
-
-        flash(f'Newsletter został wysłany do {len(email_addresses)} odbiorców.', 'success')
-        return redirect(url_for('admin_newsletter'))
-    
-    return render_template('admin/newsletter.html')
+    for single_email in email_addresses:
+        send_email(single_email, title, content)
+        
+    new_newsletter = Newsletter(title=title, content=content, recipients=email_addresses)
+    db.session.add(new_newsletter)
+    db.session.commit()
+    flash(f'Newsletter sent to {len(email_addresses)} recipients and saved in db.', 'success')
+        
+    return redirect(url_for('admin.index'))
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
