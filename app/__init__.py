@@ -89,11 +89,12 @@ def make_shell_context():
         "Reaction": app.models.Reaction,
         "ReactionLikeIt": app.models.ReactionLikeIt,
         "ReactionHateIt": app.models.ReactionHateIt,
+        "Newsletter": app.models.Newsletter,
     }
 
 from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions, admin
-from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt
-from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin
+from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt, Newsletter
+from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin, NewsletterAdmin
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

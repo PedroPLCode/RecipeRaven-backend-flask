@@ -5,3 +5,4 @@ from .favorite import Favorite
 from .note import Note
 from .news import News, NewsLikeIt, NewsHateIt
 from .reactions import Reaction, ReactionLikeIt, ReactionHateIt
+from .newsletter import Newsletter

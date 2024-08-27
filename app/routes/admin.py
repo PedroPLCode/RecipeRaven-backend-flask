@@ -4,7 +4,7 @@ from datetime import datetime as dt
 from werkzeug.security import check_password_hash
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
-from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin
+from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin, NewsletterAdmin
 from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt
 from app.utils import send_email
 
@@ -23,6 +23,7 @@ admin.add_view(NewsHateItAdmin(NewsHateIt, db.session))
 admin.add_view(ReactionAdmin(Reaction, db.session))
 admin.add_view(ReactionLikeItAdmin(ReactionLikeIt, db.session))
 admin.add_view(ReactionHateItAdmin(ReactionHateIt, db.session))
+admin.add_view(NewsletterAdmin(Post, db.session))
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'admin_login'

@@ -70,3 +70,7 @@ class ReactionLikeItAdmin(AdminModelView):
 class ReactionHateItAdmin(AdminModelView):
     column_list = ('id', 'user_id', 'reaction_id')
     column_filters = ('user_id', 'reaction_id')
+    
+class NewsletterAdmin(AdminModelView):
+    column_list = ('id', 'title', 'content', 'recipents', 'comment', 'sent_date')
+    column_filters = ('title', 'content', 'recipents', 'comment')
