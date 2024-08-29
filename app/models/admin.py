@@ -11,7 +11,7 @@ class AdminModelView(ModelView):
         return redirect(url_for('admin_login'))
 
 class UserAdmin(AdminModelView):
-    column_list = ('id', 'login', 'email', 'name', 'google_user', 'original_google_picture', 'about', 'picture', 'creation_date', 'last_login')
+    column_list = ('id', 'login', 'email', 'email_confirmed', 'name', 'google_user', 'original_google_picture', 'about', 'picture', 'creation_date', 'last_login')
     column_filters = ('login', 'email', 'name', 'google_user', 'about')
     form_excluded_columns = ('password_hash',)
 

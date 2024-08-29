@@ -20,10 +20,11 @@ def item_is_valid(item):
     return True
 
 
-def send_email(email, subject, body):
-    message = Message(subject=subject, recipients=[email], body=body)
+def send_email(email, subject, body_html):
+    message = Message(subject=subject, recipients=[email])
+    message.html = body_html
     try:
         mail.send(message)
-        return 'E-mail sent!'
+        return 'email sent.'
     except Exception as e:
         return str(e)

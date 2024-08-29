@@ -11,6 +11,7 @@ class User(db.Model, UserMixin):
     original_google_picture = db.Column(db.Boolean, nullable=True)
     password_hash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(80), nullable=False)
+    email_confirmed = db.Column(db.Boolean, nullable=False, default=False)
     name = db.Column(db.String(80), nullable=True)
     about = db.Column(db.String(80), nullable=True)
     picture = db.Column(db.String(80), nullable=True)

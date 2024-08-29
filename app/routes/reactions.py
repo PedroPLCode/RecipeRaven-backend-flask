@@ -6,6 +6,7 @@ from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from config import Config
+from app.emails_templates import NEWS_REACTION_EMAIL_BODY
 
 @app.route('/api/reactions', methods=['GET'])
 @cross_origin()
@@ -37,11 +38,17 @@ def create_reaction():
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
+        news = News.query.filter_by(id=data["news_id"]).first_or_404() if data["news_id"] else None
         
         new_reaction = Reaction(news_id=data["news_id"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
         
         db.session.add(new_reaction)
         db.session.commit()
+        
+        email_subject = 'RecipeRavenApp password changed'
+        email_body = NEWS_REACTION_EMAIL_BODY.format(username=news.user.name.title() if news.user.name else news.user.login, news_title=news.title, news_reaction=new_reaction.content)
+        send_email(news.user.email, email_subject, email_body)
+        
         return jsonify({"message": "Reaction created successfully", "location": f'/reactions/{new_reaction.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401

@@ -6,6 +6,7 @@ from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from config import Config
+from app.emails_templates import POST_COMMENT_EMAIL_BODY
 
 @app.route('/api/comments', methods=['GET'])
 @cross_origin()
@@ -37,11 +38,17 @@ def create_comment():
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
+        post = Post.query.filter_by(id=data["post_id"]).first_or_404() if data["post_id"] else None
         
         new_comment = Comment(post_id=data["post_id"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
         
         db.session.add(new_comment)
         db.session.commit()
+        
+        email_subject = 'RecipeRavenApp password changed'
+        email_body = POST_COMMENT_EMAIL_BODY.format(username=post.user.name.title() if post.user.name else post.user.login, post_title=post.title, post_comment=new_comment.content)
+        send_email(post.user.email, email_subject, email_body)
+        
         return jsonify({"message": "Comment created successfully", "location": f'/comments/{new_comment.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401

@@ -11,6 +11,7 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 import json
 import requests
 from dotenv import load_dotenv
+from app.emails_templates import CREATE_USER_EMAIL_BODY
 
 @app.after_request
 def refresh_expiring_jwts(response):
@@ -37,11 +38,15 @@ def create_token():
     user = User.query.filter_by(login = login).first_or_404()
     
     if user and user.verify_password(password):
-        access_token = create_access_token(identity=login)
-        response = {"access_token": access_token}
-        user.last_login = dt.utcnow()
-        db.session.commit()
-        return response
+        if user.email_confirmed:
+            access_token = create_access_token(identity=login)
+            response = {"access_token": access_token}
+            user.last_login = dt.utcnow()
+            db.session.commit()
+            return response
+        else:
+            response = {"email_confirmed": False}
+            return response
     else:
         return {"msg": "Wrong email or password"}, 401
 
@@ -86,6 +91,7 @@ def create_google_token():
                 login=google_user_info.get('email'),
                 google_user=True,
                 email=google_user_info.get('email'),
+                email_confirmed=True,
                 name=google_user_info.get('given_name', ''),
                 about=google_user_info.get('name', ''),
                 last_login=dt.utcnow(),
@@ -95,8 +101,8 @@ def create_google_token():
             db.session.commit()
             user = new_google_user
             
-            email_subject = 'Welcome in FoodApp test'
-            email_body = f'Hello {new_google_user.name.title()}'
+            email_subject = 'Welcome in RecipeRavenApp test'
+            email_body = CREATE_USER_EMAIL_BODY.format(username=new_google_user.name.title())
             send_email(new_google_user.email, email_subject, email_body)
     
         except Exception as e:
@@ -108,6 +114,12 @@ def create_google_token():
     access_token = create_access_token(identity=google_user_info['email'])
     response = {"access_token": access_token}
     
+    # Only for tests.
+    email_subject = 'Welcome in RecipeRavenApp test'
+    email_body = CREATE_USER_EMAIL_BODY.format(username=user.name.title() if user else new_google_user.name.title())
+    send_email(user.email if user else new_google_user.email, email_subject, email_body)
+    # Only for tests.
+        
     return jsonify(response), 200
 
 
