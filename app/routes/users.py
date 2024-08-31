@@ -12,18 +12,23 @@ from itsdangerous import URLSafeTimedSerializer, BadSignature
 from pathlib import Path
 from app.emails_templates import CREATE_USER_EMAIL_BODY, CONFIRM_EMAIL_EMAIL_BODY, DELETE_USER_EMAIL_BODY, RESET_PASSWORD_EMAIL_BODY, PASSWORD_CHANGED_EMAIL_BODY
 
-@app.route('/api/logins', methods=["GET"])
+@app.route('/api/check_user/', methods=["GET"])
 @cross_origin()
-def check_user_login():
+def check_user():
     try:
         login_query = request.args.get("login", "")
-        if len(login_query) > 0:
+        email_query = request.args.get("email", "")
+
+        if login_query:
             user = User.query.filter_by(login=login_query).first()
-            if user:
-                user.last_login = dt.utcnow()
-                return jsonify({"login_status": True}), 200
-            else:
-                return jsonify({"login_status": False}), 200
+            return jsonify({"login_status": bool(user)}), 200
+
+        if email_query:
+            user = User.query.filter_by(email=email_query).first()
+            return jsonify({"email_status": bool(user)}), 200
+
+        return jsonify({"message": "No query parameter provided"}), 400
+
     except Exception as e:
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
     
@@ -37,15 +42,24 @@ def get_user():
         user = User.query.filter_by(login=current_user).first_or_404()  
         
         creation_date_str = str(user.creation_date) if user.creation_date else None
-        creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
+        try:
+            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
+        except ValueError:
+            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S") if creation_date_str else None
         formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
                 
         last_login_str = str(user.last_login) if user.last_login else None
-        last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S.%f") if last_login_str else None
+        try:
+            last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S.%f") if last_login_str else None
+        except ValueError:
+            last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S") if last_login_str else None
         formatted_last_login = last_login_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_login_obj else None
                 
         last_activity_str = str(dt.utcnow())
-        last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S.%f") if last_activity_str else None
+        try:
+            last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S.%f") if last_activity_str else None
+        except ValueError:
+            last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S") if last_activity_str else None
         formatted_last_activity = last_activity_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_activity_obj else None
         
         if user:            
@@ -162,7 +176,7 @@ def confirm_user_email(token):
         email_body = CREATE_USER_EMAIL_BODY.format(username=user.name.title() if user.name else user.login)
         send_email(user.email, email_subject, email_body)
         
-        response = {"msg": "User created successfully"}
+        response = {"msg": "User email confirmed successfully"}
         return jsonify(response), 201 
     except Exception as e:
         return jsonify({"msg": str(e)}), 500

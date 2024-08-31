@@ -45,7 +45,7 @@ def create_token():
             db.session.commit()
             return response
         else:
-            response = {"email_confirmed": False}
+            response = {"email_not_confirmed": True}
             return response
     else:
         return {"msg": "Wrong email or password"}, 401

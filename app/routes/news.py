@@ -44,17 +44,14 @@ def get_news():
             for reaction in news.reactions:
                 creation_date_str = str(reaction.creation_date) if reaction.creation_date else None
                 modification_date_str = str(reaction.last_update) if reaction.last_update else None
-
                 try:
                     creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
                 except ValueError:
                     creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S") if creation_date_str else None
-
                 try:
                     modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S.%f") if modification_date_str else None
                 except ValueError:
                     modification_date_obj = dt.strptime(modification_date_str, "%Y-%m-%d %H:%M:%S") if modification_date_str else None
-
                 formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
                 formatted_modification_date = modification_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if modification_date_obj else None
                 
