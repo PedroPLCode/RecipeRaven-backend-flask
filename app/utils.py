@@ -3,6 +3,7 @@ from app import mail, app, db
 from flask_mail import Message
 from app.models import User
 import os
+from datetime import datetime, timedelta
 
 def get_random_topic(array):
     min_val = 0
@@ -33,21 +34,21 @@ def send_email(email, subject, body_html):
     
     
 def check_and_delete_unconfirmed_users():
-    all_users = User.query.all()  
-    
-    for user in all_users:
-        
-        if user.email_confirmed==False and user.creation_date==OLDER_THAN_24hrs:
-            
-            try: 
-                
-                filename = user.picture if user.picture else None
-                filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename) if filename else None
+    now = datetime.utcnow()
+    cutoff_time = now - timedelta(hours=24)
+
+    unconfirmed_users = User.query.filter(User.email_confirmed == False, User.creation_date < cutoff_time).all()
+
+    for user in unconfirmed_users:
+        try:
+            if user.picture:
+                filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], user.picture)
                 if os.path.exists(filepath):
-                    os.remove(filepath) ### NOT SURE WILL WORK
-                    
-                db.session.delete(user)
-                db.session.commit()
-                
-            except Exception as e:
-                db.session.rollback()
+                    os.remove(filepath)
+            
+            db.session.delete(user)
+            db.session.commit()
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error deleting user {user.id}: {str(e)}") 
