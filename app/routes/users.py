@@ -149,12 +149,41 @@ def create_user():
         db.session.commit()
         
         token = serializer.dumps(email, salt='confirm-email')
-        confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
+        confirm_url = f'http://127.0.0.1:3000/userconfirmed/{token}'
         email_subject = 'RecipeRavenApp email confirm'
         email_body = CONFIRM_EMAIL_EMAIL_BODY.format(username=name.title() if name else login, link=confirm_url)
         send_email(email, email_subject, email_body)
         return jsonify({"reset_url": confirm_url}), 200
             
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 500
+    
+    
+@app.route('/api/users/resend_confirm', methods=["POST"])
+@cross_origin()
+def create_user():
+    try:
+        data = request.form.to_dict()
+        email = data.get("email")
+        
+        if email is None:
+            return jsonify({"msg": "email not provided"}), 401
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            if user.email_confirmed:
+                return jsonify({'message': 'User email already confirmed'}), 400
+            else:
+                token = serializer.dumps(email, salt='confirm-email')
+                confirm_url = f'http://127.0.0.1:3000/userconfirmed/{token}'
+                email_subject = 'RecipeRavenApp email confirm'
+                email_body = CONFIRM_EMAIL_EMAIL_BODY.format(username=user.name.title() if user.name else user.login, link=confirm_url)
+                send_email(email, email_subject, email_body)
+                return jsonify({"reset_url": confirm_url}), 200
+        else:
+            return jsonify({"msg": "user not found"}), 401
+                
     except Exception as e:
         return jsonify({"msg": str(e)}), 500
     

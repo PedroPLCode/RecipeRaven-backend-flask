@@ -40,12 +40,12 @@ def create_token():
     if user and user.verify_password(password):
         if user.email_confirmed:
             access_token = create_access_token(identity=login)
-            response = {"access_token": access_token}
+            response = {"email_confirmed": True, "access_token": access_token}
             user.last_login = dt.utcnow()
             db.session.commit()
             return response
         else:
-            response = {"email_not_confirmed": True}
+            response = {"email_confirmed": False}
             return response
     else:
         return {"msg": "Wrong email or password"}, 401
