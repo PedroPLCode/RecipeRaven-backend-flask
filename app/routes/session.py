@@ -40,12 +40,12 @@ def create_token():
     if user and user.verify_password(password):
         if user.email_confirmed:
             access_token = create_access_token(identity=login)
-            response = {"access_token": access_token}
+            response = {"access_token": access_token, 'email_confirmed': user.email_confirmed}
             user.last_login = dt.utcnow()
             db.session.commit()
             return response
         else:
-            response = {"email_not_confirmed": True}
+            response = {"email_confirmed": user.email_confirmed}
             return response
     else:
         return {"msg": "Wrong email or password"}, 401
@@ -113,12 +113,6 @@ def create_google_token():
 
     access_token = create_access_token(identity=google_user_info['email'])
     response = {"access_token": access_token}
-    
-    # Only for tests.
-    email_subject = 'Welcome in RecipeRavenApp test'
-    email_body = CREATE_USER_EMAIL_BODY.format(username=user.name.title() if user else new_google_user.name.title())
-    send_email(user.email if user else new_google_user.email, email_subject, email_body)
-    # Only for tests.
         
     return jsonify(response), 200
 

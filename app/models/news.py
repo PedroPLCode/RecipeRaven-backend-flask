@@ -14,14 +14,14 @@ class News(db.Model):
     
 class NewsLikeIt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=dt.utcnow)
     
 class NewsHateIt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=dt.utcnow)
     
 from .user import User

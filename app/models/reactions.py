@@ -14,14 +14,14 @@ class Reaction(db.Model):
     
 class ReactionLikeIt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=dt.utcnow)
     
 class ReactionHateIt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=dt.utcnow)
     
 from .user import User

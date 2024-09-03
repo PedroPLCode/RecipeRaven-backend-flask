@@ -69,6 +69,7 @@ def get_user():
                 "google_user": user.google_user,
                 "original_google_picture": user.original_google_picture,
                 "email": user.email,
+                "email_confirmed": user.email_confirmed,
                 "name": user.name,
                 "about": user.about,
                 "picture": user.picture,
@@ -157,6 +158,36 @@ def create_user():
             
     except Exception as e:
         return jsonify({"msg": str(e)}), 500
+    
+
+@app.route('/api/resend/', methods=["POST"])
+@cross_origin()
+def reconfirm_user():
+    try:
+        data = request.form.to_dict()
+        email = data.get("email")
+
+        if not email:
+            return jsonify({"msg": "No email provided"}), 400
+
+        user = User.query.filter_by(email=email, google_user=False).first_or_404()
+
+        if not user.email_confirmed:
+            token = serializer.dumps(email, salt='confirm-email')
+            confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
+            email_subject = 'RecipeRavenApp email confirmation'
+            email_body = CONFIRM_EMAIL_EMAIL_BODY.format(
+                username=user.name.title() if user.name else user.name,
+                link=confirm_url
+            )
+            send_email(user.email, email_subject, email_body)
+            return jsonify({"reset_url": confirm_url}), 200
+        else:
+            return jsonify({'message': 'Email already confirmed'}), 200
+
+    except Exception as e:
+        # Consider logging the exception here for debugging
+        return jsonify({"msg": "An error occurred. Please try again later."}), 500
     
     
 @app.route('/api/user/confirm/<token>', methods=["POST"])
