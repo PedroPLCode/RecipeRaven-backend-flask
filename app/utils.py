@@ -44,28 +44,50 @@ def format_date(date_str):
     return None
     
     
-def process_post_news(item):
+def get_author_info(user):
     return {
+        'author': user.name or user.login if user else None,
+        'author_picture': user.picture if user else None,
+        'author_google_user': user.google_user if user else None,
+        'author_original_google_picture': user.original_google_picture if user else None
+    }
+    
+
+def format_post_news_dates(creation_date, last_update):
+    return {
+        'creation_date': format_date(str(creation_date)),
+        'last_update': format_date(str(last_update))
+    }
+    
+    
+def process_post_news(item):
+    user_info = get_author_info(item.user)
+    dates = format_post_news_dates(item.creation_date, item.last_update)
+    
+    result = {
         'id': item.id,
         'user_id': item.user_id,
         'content': item.content,
         'title': item.title,
-        'author': item.user.name or item.user.login if item.user else None,
+        **user_info,
         'guest_author': item.guest_author if item.guest_author else None,
-        'author_picture': item.user.picture if item.user else None,
-        'author_google_user': item.user.google_user if item.user else None,
-        'author_original_google_picture': item.user.original_google_picture if item.user else None,
-        'creation_date': format_date(str(item.creation_date)),
-        'last_update': format_date(str(item.last_update)),
-        'comments': [process_comments_reaction(sub_item) for sub_item in item.comments] or None,
-        'reactions': [process_comments_reaction(reaction) for reaction in item.reactions] or None,
+        **dates,
         'likes': [like.user_id for like in item.likes],
         'hates': [hate.user_id for hate in item.hates],
     }
+
+    if hasattr(item, 'comments'):
+        result['comments'] = [process_comments_reaction(comment) for comment in item.comments]
+        
+    if hasattr(item, 'reactions'):
+        result['reactions'] = [process_comments_reaction(reaction) for reaction in item.reactions]
+
+    return result
     
     
 def process_comments_reaction(item):
-    return {
+    
+    result =  {
         'id': item.id,
         'user_id': item.user_id,
         'content': item.content,
@@ -73,10 +95,15 @@ def process_comments_reaction(item):
         'guest_author': item.guest_author if item.guest_author else None,
         'creation_date': format_date(str(item.creation_date)),
         'last_update': format_date(str(item.last_update)),
-        'likes': [like.user_id for like in item.likes],
-        'hates': [hate.user_id for hate in item.hates],
     }
     
+    if item.likes:
+        result['likes'] = [like.user_id for like in item.likes],
+        
+    if item.hates:
+        result['hates'] = [hate.user_id for hate in item.hates],
+    
+    return result
     
 def check_and_delete_unconfirmed_users():
     now = datetime.utcnow()

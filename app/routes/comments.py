@@ -48,7 +48,7 @@ def create_comment():
         db.session.add(new_comment)
         db.session.commit()
         
-        email_subject = 'RecipeRavenApp password changed'
+        email_subject = 'RecipeRavenApp comment to your post'
         email_body = POST_COMMENT_EMAIL_BODY.format(
             username=post.user.name.title() if post.user.name else post.user.login,
             post_title=post.title,
