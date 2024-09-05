@@ -49,7 +49,7 @@ def create_token():
             response = {"email_confirmed": user.email_confirmed}
             return response
     else:
-        return {"msg": "Wrong email or password"}, 401
+        return {"msg": "Wrong email or password."}, 401
 
 
 @app.route('/google_token', methods=['POST'])
@@ -58,7 +58,7 @@ def create_google_token():
     auth_code = request.get_json().get('code')
     
     if not auth_code:
-        return jsonify({"msg": "Authorization code is missing"}), 400
+        return jsonify({"msg": "Authorization code is missing."}), 400
 
     data = {
         'code': auth_code,
@@ -70,7 +70,7 @@ def create_google_token():
 
     try:
         response = requests.post('https://oauth2.googleapis.com/token', data=data)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()
         response_data = response.json()
     except requests.exceptions.RequestException as e:
         return jsonify({"msg": str(e)}), 500
@@ -106,7 +106,7 @@ def create_google_token():
             db.session.commit()
             user = new_google_user
             
-            email_subject = 'Welcome in RecipeRavenApp test'
+            email_subject = 'Welcome in RecipeRavenApp.'
             email_body = CREATE_USER_EMAIL_BODY.format(
                 username=new_google_user.name.title()
                 )
@@ -127,6 +127,6 @@ def create_google_token():
 @app.route("/logout", methods=["POST"])
 @cross_origin()
 def logout():
-    response = jsonify({"msg": "logout successful"})
+    response = jsonify({"msg": "Logout successful."})
     unset_jwt_cookies(response)
     return response

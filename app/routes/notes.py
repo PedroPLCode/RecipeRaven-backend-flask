@@ -13,7 +13,7 @@ def create_note():
         data = request.get_json()
 
         if not data:
-            return jsonify({"message": "No input data provided"}), 400
+            return jsonify({"msg": "No input data provided."}), 400
 
         note = Note.query.filter_by(favorite_id=data["favorite_id"]).first()
         if note:

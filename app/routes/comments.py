@@ -31,12 +31,12 @@ def get_comments():
 @jwt_required(optional=True)
 def create_comment():
     try:
+        current_user = get_jwt_identity()
         data = request.get_json()
         
         if not data:
-            return jsonify({"message": "No input data provided"}), 400
+            return jsonify({"msg": "No input data provided."}), 400
         
-        current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         post = Post.query.filter_by(id=data["post_id"]).first_or_404() if data["post_id"] else None
         
@@ -44,11 +44,10 @@ def create_comment():
                               content=data["content"], 
                               guest_author=data["guest_author"] if not user else None, 
                               user_id=user.id if user else None)
-        
         db.session.add(new_comment)
         db.session.commit()
         
-        email_subject = 'RecipeRavenApp comment to your post'
+        email_subject = 'New Comment to Your Post'
         email_body = POST_COMMENT_EMAIL_BODY.format(
             username=post.user.name.title() if post.user.name else post.user.login,
             post_title=post.title,
@@ -56,7 +55,7 @@ def create_comment():
         )
         send_email(post.user.email, email_subject, email_body)
         
-        return jsonify({"message": "Comment created successfully", 
+        return jsonify({"msg": "Comment created successfully.", 
                         "location": f'/comments/{new_comment.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -67,24 +66,22 @@ def create_comment():
 @jwt_required()
 def update_comments(comment_id):
     try:
+        current_user = get_jwt_identity()
         data = request.get_json()
         
         if not data or not data["content"]:
-            return jsonify({"message": "No input data provided or missing data"}), 400
+            return jsonify({"msg": "No input data provided or wrong data."}), 400
         
-        current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
         comment = Comment.query.filter(
             (Comment.id == comment_id) & 
             ((Comment.user_id == user.id) | (user.id == Config.admin_id))
         ).first_or_404()
-        
         comment.content = data["content"]
         comment.last_update = dt.utcnow()
-        
         db.session.commit()
         
-        return jsonify({"message": "Comment updated successfully", 
+        return jsonify({"msg": "Comment updated successfully.", 
                         "location": f'/comments/{comment.id}'}), 200
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -105,10 +102,9 @@ def delete_comment(comment_id):
             (user.id == Config.admin_id) | 
             (Post.user_id == user.id)
         ).first_or_404()
-
         db.session.delete(comment_to_delete)
         db.session.commit()
 
-        return jsonify({"msg": "Comment deleted successfully"}), 200
+        return jsonify({"msg": "Comment deleted successfully."}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

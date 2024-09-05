@@ -16,19 +16,15 @@ def get_favorites():
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-        
-        results = []
         favorites = Favorite.query.filter_by(user_id=user.id).all()
+        results = []
         
         for favorite in favorites:
             favorite_data = favorite.data.copy() 
             favorite_data['id'] = favorite.id
-            
             note = Note.query.filter_by(favorite_id=favorite.id).first()
             favorite_data['note'] = note.to_dict() if note else None
-            
             favorite_data['starred'] = True if favorite.starred else False
-            
             results.append(favorite_data)
         
         return jsonify(results), 200
@@ -43,10 +39,9 @@ def create_favorite():
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404(
-            description="User not found"
+            description="User not found."
         )
 
-        
         if user:
             new_favorite = {}
             new_favorite['data'] = json.loads(request.data)
@@ -61,7 +56,6 @@ def create_favorite():
                     if single_favorite_calories == calories_value:
                         return jsonify({"msg": "Favorite already exists."}), 400
             except Exception as e:
-                print(f"Query error: {str(e)}")
                 return jsonify({"msg": f"Error querying database: {e}"}), 500
             
             image_url = (
@@ -74,7 +68,7 @@ def create_favorite():
                     response.raise_for_status()
                 except requests.exceptions.RequestException as e:
                     return {"msg": f"Failed to fetch image from URL: {str(e)}"}, 400
-                
+
                 filename = secure_filename(os.path.basename(image_url))
                 if len(filename) > 255:
                     filename = filename[:255]
@@ -89,12 +83,12 @@ def create_favorite():
 
             favorite = Favorite(data=new_favorite, user_id=user.id, starred=False)
             db.session.add(favorite)
-            
             note = Note(favorite_id=favorite.id, content='')
             db.session.add(note)
-            
             db.session.commit()
+            
             return '', 201, {'location': f'/favorites/{favorite.id}'}
+        
     except Exception as e:
         return {"msg": str(e)}, 401
 
@@ -106,12 +100,11 @@ def delete_favorite(favorite_to_delete_id: int):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404(
-            description="User not found"
+            description="User not found."
         )
-        
         favorite_to_delete = Favorite.query.filter_by(
             id=favorite_to_delete_id, user_id=user.id).first_or_404(
-                description="Favorite not found"
+                description="Favorite not found."
             )
         note_to_delete = Note.query.filter_by(favorite_id=favorite_to_delete.id).first()
 
@@ -120,12 +113,10 @@ def delete_favorite(favorite_to_delete_id: int):
                 image_name = favorite_to_delete.data['image_name']
                 image_to_delete = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], 
                                                image_name)
-                
                 if os.path.exists(image_to_delete):
                     os.remove(image_to_delete)
-                    print(f"File Deleted: {image_to_delete}")
                 else:
-                    print(f"File Not Exists: {image_to_delete}")
+                    pass
 
             if note_to_delete:
                 db.session.delete(note_to_delete)
@@ -134,6 +125,7 @@ def delete_favorite(favorite_to_delete_id: int):
             
             return jsonify({"msg": "Favorite and associated note deleted successfully", 
                             "favorite": favorite_to_delete.to_dict()}), 200
+            
         except Exception as e:
             db.session.rollback()
             return {"msg": f"An error occurred during deletion: {str(e)}"}, 500
@@ -154,10 +146,10 @@ def handle_starred_favorite(favorite_id: int):
             id=favorite_id, user_id=user.id).first_or_404(
                 description="Favorite not found"
             )
-
+            
         favorite.starred = not favorite.starred
-        
         db.session.commit()
+        
         return jsonify({"msg": "Operation successful", 
                         "favorite": favorite.to_dict()}), 200
 

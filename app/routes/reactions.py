@@ -105,10 +105,9 @@ def delete_reaction(reaction_id):
             (user.id == Config.admin_id) | 
             (News.user_id == user.id)
         ).first_or_404()
-
         db.session.delete(reaction_to_delete)
         db.session.commit()
 
-        return jsonify({"msg": "Reaction deleted successfully"}), 200
+        return jsonify({"msg": "Reaction deleted successfully."}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

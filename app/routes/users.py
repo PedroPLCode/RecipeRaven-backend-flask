@@ -32,10 +32,10 @@ def check_user():
             user = User.query.filter_by(email=email_query).first()
             return jsonify({"email_status": bool(user)}), 200
 
-        return jsonify({"message": "No query parameter provided"}), 400
+        return jsonify({"msg": "No query parameter provided."}), 400
 
     except Exception as e:
-        return jsonify({"message": "An error occurred", "error": str(e)}), 500
+        return jsonify({"msg": "An error occurred.", "error": str(e)}), 500
     
     
 @app.route('/api/users', methods=["GET"])
@@ -66,7 +66,7 @@ def get_user():
             }
             return {"user_data": user_data}, 200
         else:
-            return {"msg": "User not found"}, 404
+            return {"msg": "User not found."}, 404
         
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -81,7 +81,7 @@ def check_user_password():
         password = data.get("password")
 
         if not password:
-            return {"msg": "Password is required"}, 400
+            return {"msg": "Password is required."}, 400
 
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
@@ -105,10 +105,10 @@ def create_user():
         about = data.get("about")
         
         if login is None or password is None:
-            return jsonify({"msg": "Wrong email or password"}), 401
+            return jsonify({"msg": "Wrong email or password."}), 401
 
         if User.query.filter_by(login=login).first() or User.query.filter_by(email=email).first():
-            return jsonify({'message': 'Login or email already exists'}), 400
+            return jsonify({'msg': 'Login or email already exists.'}), 400
         
         picture = request.files.get('picture')
         filename = None
@@ -133,11 +133,12 @@ def create_user():
         
         token = serializer.dumps(email, salt='confirm-email')
         confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
-        email_subject = 'RecipeRavenApp email confirm'
+        email_subject = 'Confirm Your email address.'
         email_body = CONFIRM_EMAIL_EMAIL_BODY.format(
             username=name.title() if name else login, link=confirm_url
             )
         send_email(email, email_subject, email_body)
+        
         return jsonify({"reset_url": confirm_url}), 200
             
     except Exception as e:
@@ -152,14 +153,14 @@ def reconfirm_user():
         email = data.get("email")
 
         if not email:
-            return jsonify({"msg": "No email provided"}), 400
+            return jsonify({"msg": "No email provided."}), 400
 
         user = User.query.filter_by(email=email, google_user=False).first_or_404()
 
         if not user.email_confirmed:
             token = serializer.dumps(email, salt='confirm-email')
             confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
-            email_subject = 'RecipeRavenApp email confirmation'
+            email_subject = 'Confirm Your email address.'
             email_body = CONFIRM_EMAIL_EMAIL_BODY.format(
                 username=user.name.title() if user.name else user.name,
                 link=confirm_url
@@ -167,7 +168,7 @@ def reconfirm_user():
             send_email(user.email, email_subject, email_body)
             return jsonify({"reset_url": confirm_url}), 200
         else:
-            return jsonify({'message': 'Email already confirmed'}), 200
+            return jsonify({'msg': 'Email already confirmed.'}), 200
 
     except Exception as e:
         return jsonify({"msg": "An error occurred. Please try again later."}), 500
@@ -181,12 +182,12 @@ def confirm_user_email(token):
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            return jsonify({"error": "User with this token not found"}), 404
+            return jsonify({"error": "User with this token not found."}), 404
 
         user.email_confirmed = True
         db.session.commit()
             
-        email_subject = 'Recipe Raven App welcome'
+        email_subject = 'Welcome in Recipe Raven App.'
         email_body = CREATE_USER_EMAIL_BODY.format(
             username=user.name.title() if user.name else user.login
             )
@@ -205,10 +206,9 @@ def change_user():
     try:
         current_user_login = get_jwt_identity()
         user = User.query.filter_by(login=current_user_login).first_or_404()
-
         data = request.form.to_dict()
-
         file = request.files.get('picture')
+        
         if file:
             try:    
                 path = Path(file.filename)
@@ -218,7 +218,7 @@ def change_user():
                 
                 if os.path.exists(filepath):
                     os.remove(filepath)
-                
+                         
                 file.save(filepath)
                 data['picture'] = filename
             except Exception as e:
@@ -232,8 +232,7 @@ def change_user():
         if old_password and new_password:
             if user.verify_password(old_password):
                 user.password = new_password
-                
-                email_subject = 'passwd changed'
+                email_subject = 'Your Password has been changed.'
                 email_body = f'Hello {user.name.title()}. passwd changed.'
                 send_email(user.email, email_subject, email_body)
             else:
@@ -242,10 +241,9 @@ def change_user():
         user.email = data.get('email', user.email)
         user.name = data.get('name', user.name)
         user.about = data.get('about', user.about)
-
         db.session.commit()
 
-        return jsonify({"msg": "User details updated successfully"}), 200
+        return jsonify({"msg": "User details updated successfully."}), 200
 
     except Exception as e:
         db.session.rollback()
@@ -260,11 +258,13 @@ def delete_user():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()  
         user_favorites = Favorite.query.filter_by(user_id=user.id).all()
-        
         filename = user.picture if user.picture else None
         filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename) if filename else None
+        
         if os.path.exists(filepath):
             os.remove(filepath)
+        else:
+            pass
         
         for favorite in user_favorites:
             try:
@@ -274,9 +274,8 @@ def delete_user():
                     
                     if os.path.exists(image_to_delete):
                         os.remove(image_to_delete)
-                        print(f"File Deleted: {image_to_delete}")
                     else:
-                        print(f"File Not Exists: {image_to_delete}")
+                        pass
                         
                 note = Note.query.filter_by(favorite_id=favorite.id).first()
                 if note:
@@ -297,7 +296,7 @@ def delete_user():
             "about": user.about,
         }
         
-        email_subject = 'Bye bye FoodApp test'
+        email_subject = 'Your account has been removed.'
         email_body = DELETE_USER_EMAIL_BODY.format(
             username=user.name.title() if user.name else user.login
             )
@@ -319,17 +318,18 @@ def reset_password_request():
             if user:
                 token = serializer.dumps(email_address, salt='reset-password')
                 reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
-                email_subject = 'RecipeRavenApp password reset'
+                email_subject = 'Reset Your password.'
                 email_body = RESET_PASSWORD_EMAIL_BODY.format(
                     username=user.name.title() if user.name else user.login,
                     link=reset_url
                     )
                 send_email(email_address, email_subject, email_body)
+                
                 return jsonify({"reset_url": reset_url}), 200
             else:
-                return jsonify({"msg": "User not found"}), 400
+                return jsonify({"msg": "User not found."}), 400
         else:
-            return jsonify({"msg": "Email address not provided"}), 400
+            return jsonify({"msg": "Email address not provided."}), 400
 
     except Exception as e:
         return jsonify({"msg": str(e)}), 500
@@ -338,27 +338,26 @@ def reset_password_request():
 @app.route('/api/resetpassword/reset/<token>', methods=["POST"])
 def reset_password(token):
     try:
+        email = serializer.loads(token, salt='reset-password', max_age=3600)
+        user = User.query.filter_by(email=email).first()
         new_password = request.json.get('new_password')
 
         if not new_password:
-            return jsonify({"error": "Missing data - no new password"}), 400
-
-        email = serializer.loads(token, salt='reset-password', max_age=3600)
-        user = User.query.filter_by(email=email).first()
+            return jsonify({"msg": "Missing data. No new password."}), 400
 
         if not user:
-            return jsonify({"error": "User with this token not found"}), 404
+            return jsonify({"msg": "User with this token not found."}), 404
 
         user.password = new_password
         db.session.commit()
         
-        email_subject = 'RecipeRavenApp password changed'
+        email_subject = 'Your Password has been changed.'
         email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
             username=user.name.title() if user.name else user.login
             )
         send_email(user.email, email_subject, email_body)
 
-        return jsonify({"message": "success. password was changed"}), 200
+        return jsonify({"msg": "Password changed succesfully."}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

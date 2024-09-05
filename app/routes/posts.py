@@ -38,12 +38,12 @@ def get_posts():
 @jwt_required(optional=True)
 def create_post():
     try:
+        current_user = get_jwt_identity()
         data = request.get_json()
         
         if not data or not data["title"] or not data["content"]:
-            return jsonify({"message": "No input data provided or missing data"}), 400
+            return jsonify({"msg": "No input data provided or wrong data."}), 400
         
-        current_user = get_jwt_identity()
         user = User.query.filter_by(
             login=current_user).first_or_404() if current_user else None
 
@@ -53,7 +53,8 @@ def create_post():
                         user_id=user.id if user else None)
         db.session.add(new_post)
         db.session.commit()
-        return jsonify({"message": "Post created successfully",
+        
+        return jsonify({"msg": "Post created successfully",
                         "location": f'/posts/{new_post.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -64,12 +65,12 @@ def create_post():
 @jwt_required()
 def update_post(post_id):
     try:
+        current_user = get_jwt_identity()
         data = request.get_json()
         
         if not data:
-            return jsonify({"message": "No input data provided"}), 400
+            return jsonify({"msg": "No input data provided."}), 400
         
-        current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
         post = Post.query.filter(
             (Post.id == post_id) & 
@@ -84,7 +85,7 @@ def update_post(post_id):
             post.last_update = dt.utcnow()
         db.session.commit()
         
-        return jsonify({"message": "Post updated successfully", 
+        return jsonify({"msg": "Post updated successfully.", 
                         "location": f'/posts/{post.id}'}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401
@@ -108,7 +109,7 @@ def delete_post(post_id):
                 Comment.post_id == post_to_delete.id
                 ).first()
             if post_comments:
-                return {'Error. Post still have comments. Cant delete'}, 400
+                return {'Post still have comments. Cant delete.'}, 400
             else: 
                 db.session.delete(post_to_delete)
                 db.session.commit()
@@ -139,7 +140,7 @@ def manage_reaction(action, object_type, object_id):
         obj = model_class.query.filter_by(id=object_id).first_or_404()
         
         if user.id == obj.user_id:
-            return jsonify({"message": f'You cant add {action} to your own {object_type}'}), 500
+            return jsonify({"msg": f'You cant add {action} to your own {object_type}.'}), 500
         
         like_filter = (like_class.query
                         .filter_by(user_id=user.id)
@@ -156,22 +157,22 @@ def manage_reaction(action, object_type, object_id):
             existing_reaction = like_exists
             reaction_class = like_class
             opposite_msg = "Hate removed. "
-            reaction_msg = "Like added successfully"
-            delete_msg = "Like deleted successfully"
+            reaction_msg = "Like added successfully."
+            delete_msg = "Like deleted successfully."
         elif action == 'hate':
             opposite_reaction = like_exists
             existing_reaction = hate_exists
             reaction_class = hate_class
             opposite_msg = "Like removed. "
-            reaction_msg = "Hate added successfully"
-            delete_msg = "Hate deleted successfully"
+            reaction_msg = "Hate added successfully."
+            delete_msg = "Hate deleted successfully."
         else:
-            return jsonify({"message": "Invalid action"}), 400
+            return jsonify({"msg": "Invalid action."}), 400
 
         if existing_reaction:
             db.session.delete(existing_reaction)
             db.session.commit()
-            return jsonify({"message": delete_msg}), 200
+            return jsonify({"msg": delete_msg}), 200
 
         if opposite_reaction:
             db.session.delete(opposite_reaction)
@@ -182,7 +183,7 @@ def manage_reaction(action, object_type, object_id):
 
         db.session.add(new_reaction)
         db.session.commit()
-        return jsonify({"message": opposite_msg + reaction_msg}), 200
+        return jsonify({"msg": opposite_msg + reaction_msg}), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"msg": str(e)}), 500

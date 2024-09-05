@@ -81,7 +81,6 @@ def inject_user():
 def admin_newsletter():
     title = request.form['topic']
     content = request.form['content']
-        
     all_users = User.query.all()
     email_addresses = [user.email for user in all_users]
         
@@ -95,8 +94,7 @@ def admin_newsletter():
     db.session.commit()
     flash(f'Newsletter sent to {len(email_addresses)} recipients and saved in db.',
     'success')
-
-        
+    
     return redirect(url_for('admin.index'))
 
 
@@ -116,7 +114,7 @@ def admin_login():
             return redirect(next_page or url_for('admin.index'))
         else:
             flash('Invalid email or password.', 'danger')
-
+            
     return render_template('admin/admin_login.html')
 
 
