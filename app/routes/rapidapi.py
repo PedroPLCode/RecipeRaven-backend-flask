@@ -57,7 +57,7 @@ def fetch_receipes():
                 elif single_param in health_labels:
                     querystring[f"health[{health_index}]"] = single_param
                     health_index += 1
-        
+                    
     try:
         response = requests.get(url, headers=headers, params=querystring)
         response_data = response.json()
@@ -67,6 +67,7 @@ def fetch_receipes():
             'hits': [],
             '_links': response_data['_links'],
         }
+        
         for single_hit in response_data['hits']:
             single_result = {
                 'url': single_hit['recipe']['url'],

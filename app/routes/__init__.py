@@ -8,7 +8,9 @@ CORS(routes)
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(func=check_and_delete_unconfirmed_users, trigger="interval", hours=24)
+    scheduler.add_job(func=check_and_delete_unconfirmed_users, 
+                      trigger="interval",
+                      hours=24)
     scheduler.start()
 
 start_scheduler()

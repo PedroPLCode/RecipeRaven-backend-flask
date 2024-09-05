@@ -17,9 +17,9 @@ def get_comments():
         for comment in all_comments:
             temp = {}
             temp['content'] = comment.content
-            temp['author'] = comment.user.name if comment.user else None
-            temp['guest_author'] = comment.guest_author if comment.guest_author else None
-            temp['author_picture'] = comment.user.picture if comment.user else None
+            temp['author'] = comment.user.name or None
+            temp['guest_author'] = comment.guest_author or None
+            temp['author_picture'] = comment.user.picture or None
             results.append(temp)
         return results
     except Exception as e:
@@ -40,16 +40,24 @@ def create_comment():
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         post = Post.query.filter_by(id=data["post_id"]).first_or_404() if data["post_id"] else None
         
-        new_comment = Comment(post_id=data["post_id"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
+        new_comment = Comment(post_id=data["post_id"], 
+                              content=data["content"], 
+                              guest_author=data["guest_author"] if not user else None, 
+                              user_id=user.id if user else None)
         
         db.session.add(new_comment)
         db.session.commit()
         
         email_subject = 'RecipeRavenApp password changed'
-        email_body = POST_COMMENT_EMAIL_BODY.format(username=post.user.name.title() if post.user.name else post.user.login, post_title=post.title, post_comment=new_comment.content)
+        email_body = POST_COMMENT_EMAIL_BODY.format(
+            username=post.user.name.title() if post.user.name else post.user.login,
+            post_title=post.title,
+            post_comment=new_comment.content
+        )
         send_email(post.user.email, email_subject, email_body)
         
-        return jsonify({"message": "Comment created successfully", "location": f'/comments/{new_comment.id}'}), 201
+        return jsonify({"message": "Comment created successfully", 
+                        "location": f'/comments/{new_comment.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
     
@@ -76,7 +84,8 @@ def update_comments(comment_id):
         
         db.session.commit()
         
-        return jsonify({"message": "Comment updated successfully", "location": f'/comments/{comment.id}'}), 200
+        return jsonify({"message": "Comment updated successfully", 
+                        "location": f'/comments/{comment.id}'}), 200
     except Exception as e:
         return {"msg": str(e)}, 401
     

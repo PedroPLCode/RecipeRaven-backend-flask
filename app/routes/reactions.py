@@ -17,9 +17,9 @@ def get_reactions():
         for reaction in all_reactions:
             temp = {}
             temp['content'] = reaction.content
-            temp['author'] = reaction.user.name if reaction.user else None
-            temp['guest_author'] = reaction.guest_author if reaction.guest_author else None
-            temp['author_picture'] = reaction.user.picture if reaction.user else None
+            temp['author'] = reaction.user.name or None
+            temp['guest_author'] = reaction.guest_author or None
+            temp['author_picture'] = reaction.user.picture or None
             results.append(temp)
         return results
     except Exception as e:
@@ -40,16 +40,24 @@ def create_reaction():
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         news = News.query.filter_by(id=data["news_id"]).first_or_404() if data["news_id"] else None
         
-        new_reaction = Reaction(news_id=data["news_id"], content=data["content"], guest_author=data["guest_author"] if not user else None, user_id=user.id if user else None)
+        new_reaction = Reaction(news_id=data["news_id"], 
+                                content=data["content"], 
+                                guest_author=data["guest_author"] if not user else None, 
+                                user_id=user.id if user else None)
         
         db.session.add(new_reaction)
         db.session.commit()
         
         email_subject = 'RecipeRavenApp password changed'
-        email_body = NEWS_REACTION_EMAIL_BODY.format(username=news.user.name.title() if news.user.name else news.user.login, news_title=news.title, news_reaction=new_reaction.content)
+        email_body = NEWS_REACTION_EMAIL_BODY.format(
+            username=news.user.name.title() if news.user.name else news.user.login, 
+            news_title=news.title, 
+            news_reaction=new_reaction.content
+        )
         send_email(news.user.email, email_subject, email_body)
         
-        return jsonify({"message": "Reaction created successfully", "location": f'/reactions/{new_reaction.id}'}), 201
+        return jsonify({"message": "Reaction created successfully", 
+                        "location": f'/reactions/{new_reaction.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
     
@@ -76,7 +84,8 @@ def update_reaction(reaction_id):
         
         db.session.commit()
         
-        return jsonify({"message": "Reaction updated successfully", "location": f'/reactions/{reaction.id}'}), 200
+        return jsonify({"message": "Reaction updated successfully", 
+                        "location": f'/reactions/{reaction.id}'}), 200
     except Exception as e:
         return {"msg": str(e)}, 401
     

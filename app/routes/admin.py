@@ -4,8 +4,40 @@ from datetime import datetime as dt
 from werkzeug.security import check_password_hash
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
-from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin, NewsletterAdmin
-from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt, Newsletter
+from app.models.admin import (UserAdmin, 
+                              FavoriteAdmin, 
+                              NoteAdmin, 
+                              PostAdmin, 
+                              PostLikeItAdmin, 
+                              PostHateItAdmin, 
+                              CommentAdmin, 
+                              CommentLikeItAdmin, 
+                              CommentHateItAdmin, 
+                              NewsAdmin, 
+                              NewsLikeItAdmin, 
+                              NewsHateItAdmin, 
+                              ReactionAdmin, 
+                              ReactionLikeItAdmin, 
+                              ReactionHateItAdmin, 
+                              NewsletterAdmin
+                              )
+from app.models import (User, 
+                        Post, 
+                        PostLikeIt, 
+                        PostHateIt, 
+                        Comment, 
+                        CommentLikeIt, 
+                        CommentHateIt, 
+                        Favorite, 
+                        Note, 
+                        News, 
+                        NewsLikeIt, 
+                        NewsHateIt, 
+                        Reaction, 
+                        ReactionLikeIt, 
+                        ReactionHateIt, 
+                        Newsletter
+                        )
 from app.utils import send_email
 
 admin.add_view(UserAdmin(User, db.session))
@@ -53,13 +85,17 @@ def admin_newsletter():
     all_users = User.query.all()
     email_addresses = [user.email for user in all_users]
         
-    for single_email in email_addresses:
-        send_email(single_email, title, content)
+    for single_email_adress in email_addresses:
+        send_email(single_email_adress, title, content)
         
-    new_newsletter = Newsletter(title=title, content=content, recipients=email_addresses)
+    new_newsletter = Newsletter(title=title, 
+                                content=content, 
+                                recipients=email_addresses)
     db.session.add(new_newsletter)
     db.session.commit()
-    flash(f'Newsletter sent to {len(email_addresses)} recipients and saved in db.', 'success')
+    flash(f'Newsletter sent to {len(email_addresses)} recipients and saved in db.',
+    'success')
+
         
     return redirect(url_for('admin.index'))
 
@@ -73,7 +109,9 @@ def admin_login():
 
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
-            flash(f'{dt.utcnow()} Logged in successfully. Welcome back {user.name if user.name else user.login}', 'success')
+            flash(f'{dt.utcnow()} Logged in successfully.'
+                  f'Welcome back {user.name if user.name else user.login}', 
+                  'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('admin.index'))
         else:

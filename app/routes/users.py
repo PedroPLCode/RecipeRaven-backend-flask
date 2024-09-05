@@ -10,7 +10,12 @@ from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 from pathlib import Path
-from app.emails_templates import CREATE_USER_EMAIL_BODY, CONFIRM_EMAIL_EMAIL_BODY, DELETE_USER_EMAIL_BODY, RESET_PASSWORD_EMAIL_BODY, PASSWORD_CHANGED_EMAIL_BODY
+from app.emails_templates import (CREATE_USER_EMAIL_BODY, 
+                                  CONFIRM_EMAIL_EMAIL_BODY, 
+                                  DELETE_USER_EMAIL_BODY, 
+                                  RESET_PASSWORD_EMAIL_BODY, 
+                                  PASSWORD_CHANGED_EMAIL_BODY
+                                  )
 
 @app.route('/api/check_user/', methods=["GET"])
 @cross_origin()
@@ -41,27 +46,6 @@ def get_user():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()  
         
-        creation_date_str = str(user.creation_date) if user.creation_date else None
-        try:
-            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S.%f") if creation_date_str else None
-        except ValueError:
-            creation_date_obj = dt.strptime(creation_date_str, "%Y-%m-%d %H:%M:%S") if creation_date_str else None
-        formatted_creation_date = creation_date_obj.strftime("%Y-%m-%d %H:%M:%S CET") if creation_date_obj else None
-                
-        last_login_str = str(user.last_login) if user.last_login else None
-        try:
-            last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S.%f") if last_login_str else None
-        except ValueError:
-            last_login_obj = dt.strptime(last_login_str, "%Y-%m-%d %H:%M:%S") if last_login_str else None
-        formatted_last_login = last_login_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_login_obj else None
-                
-        last_activity_str = str(dt.utcnow())
-        try:
-            last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S.%f") if last_activity_str else None
-        except ValueError:
-            last_activity_obj = dt.strptime(last_activity_str, "%Y-%m-%d %H:%M:%S") if last_activity_str else None
-        formatted_last_activity = last_activity_obj.strftime("%Y-%m-%d %H:%M:%S CET") if last_activity_obj else None
-        
         if user:            
             user_data = {
                 "id": user.id,
@@ -73,9 +57,9 @@ def get_user():
                 "name": user.name,
                 "about": user.about,
                 "picture": user.picture,
-                "creation_date": formatted_creation_date,
-                "last_login": formatted_last_login,
-                "last_api_activity": formatted_last_activity,
+                "creation_date": format_date(str(user.creation_date)),
+                "last_login": format_date(str(user.last_login)),
+                "last_api_activity": format_date(str(str(dt.utcnow()))),
                 "favorites_count": len(user.favorites),
                 "posts_count": len(user.posts),
                 "comments_count": len(user.comments),
@@ -129,11 +113,9 @@ def create_user():
         picture = request.files.get('picture')
         filename = None
         if picture:
-            
             path = Path(picture.filename)
             extension = path.suffix
-            
-            filename = f'{login}{extension}' # if login else secure_filename(picture.filename)
+            filename = f'{login}{extension}'
             filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
             picture.save(filepath)
 
@@ -152,7 +134,9 @@ def create_user():
         token = serializer.dumps(email, salt='confirm-email')
         confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
         email_subject = 'RecipeRavenApp email confirm'
-        email_body = CONFIRM_EMAIL_EMAIL_BODY.format(username=name.title() if name else login, link=confirm_url)
+        email_body = CONFIRM_EMAIL_EMAIL_BODY.format(
+            username=name.title() if name else login, link=confirm_url
+            )
         send_email(email, email_subject, email_body)
         return jsonify({"reset_url": confirm_url}), 200
             
@@ -186,7 +170,6 @@ def reconfirm_user():
             return jsonify({'message': 'Email already confirmed'}), 200
 
     except Exception as e:
-        # Consider logging the exception here for debugging
         return jsonify({"msg": "An error occurred. Please try again later."}), 500
     
     
@@ -204,7 +187,9 @@ def confirm_user_email(token):
         db.session.commit()
             
         email_subject = 'Recipe Raven App welcome'
-        email_body = CREATE_USER_EMAIL_BODY.format(username=user.name.title() if user.name else user.login)
+        email_body = CREATE_USER_EMAIL_BODY.format(
+            username=user.name.title() if user.name else user.login
+            )
         send_email(user.email, email_subject, email_body)
         
         response = {"msg": "User email confirmed successfully"}
@@ -226,11 +211,9 @@ def change_user():
         file = request.files.get('picture')
         if file:
             try:    
-    
                 path = Path(file.filename)
                 extension = path.suffix
-                
-                filename = user.picture if user.picture else f'{user.login}{extension}' # secure_filename(file.filename)
+                filename = user.picture if user.picture else f'{user.login}{extension}'
                 filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
                 
                 if os.path.exists(filepath):
@@ -253,7 +236,6 @@ def change_user():
                 email_subject = 'passwd changed'
                 email_body = f'Hello {user.name.title()}. passwd changed.'
                 send_email(user.email, email_subject, email_body)
-        
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400
 
@@ -282,7 +264,7 @@ def delete_user():
         filename = user.picture if user.picture else None
         filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename) if filename else None
         if os.path.exists(filepath):
-            os.remove(filepath) ### NOT SURE WILL WORK
+            os.remove(filepath)
         
         for favorite in user_favorites:
             try:
@@ -316,7 +298,9 @@ def delete_user():
         }
         
         email_subject = 'Bye bye FoodApp test'
-        email_body = DELETE_USER_EMAIL_BODY.format(username=user.name.title() if user.name else user.login)
+        email_body = DELETE_USER_EMAIL_BODY.format(
+            username=user.name.title() if user.name else user.login
+            )
         send_email(user.email, email_subject, email_body)
             
         return response_body, 200
@@ -336,7 +320,10 @@ def reset_password_request():
                 token = serializer.dumps(email_address, salt='reset-password')
                 reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
                 email_subject = 'RecipeRavenApp password reset'
-                email_body = RESET_PASSWORD_EMAIL_BODY.format(username=user.name.title() if user.name else user.login, link=reset_url)
+                email_body = RESET_PASSWORD_EMAIL_BODY.format(
+                    username=user.name.title() if user.name else user.login,
+                    link=reset_url
+                    )
                 send_email(email_address, email_subject, email_body)
                 return jsonify({"reset_url": reset_url}), 200
             else:
@@ -366,7 +353,9 @@ def reset_password(token):
         db.session.commit()
         
         email_subject = 'RecipeRavenApp password changed'
-        email_body = PASSWORD_CHANGED_EMAIL_BODY.format(username=user.name.title() if user.name else user.login)
+        email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
+            username=user.name.title() if user.name else user.login
+            )
         send_email(user.email, email_subject, email_body)
 
         return jsonify({"message": "success. password was changed"}), 200

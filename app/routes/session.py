@@ -6,12 +6,12 @@ from datetime import datetime as dt
 from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
 from app.models import User
-from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies
 import json
 import requests
 from dotenv import load_dotenv
 from app.emails_templates import CREATE_USER_EMAIL_BODY
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
+                               unset_jwt_cookies
 
 @app.after_request
 def refresh_expiring_jwts(response):
@@ -40,7 +40,8 @@ def create_token():
     if user and user.verify_password(password):
         if user.email_confirmed:
             access_token = create_access_token(identity=login)
-            response = {"access_token": access_token, 'email_confirmed': user.email_confirmed}
+            response = {"access_token": access_token, 
+                        'email_confirmed': user.email_confirmed}
             user.last_login = dt.utcnow()
             db.session.commit()
             return response
@@ -79,11 +80,15 @@ def create_google_token():
     }
 
     try:
-        google_user_info = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
+        google_user_info = requests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo', 
+            headers=headers
+        ).json()
     except requests.exceptions.RequestException as e:
         return jsonify({"msg": str(e)}), 500
 
-    user = User.query.filter_by(email=google_user_info['email'], google_user=True).first()
+    user = User.query.filter_by(email=google_user_info['email'], 
+                                google_user=True).first()
     
     if not user:
         try:
@@ -102,7 +107,9 @@ def create_google_token():
             user = new_google_user
             
             email_subject = 'Welcome in RecipeRavenApp test'
-            email_body = CREATE_USER_EMAIL_BODY.format(username=new_google_user.name.title())
+            email_body = CREATE_USER_EMAIL_BODY.format(
+                username=new_google_user.name.title()
+                )
             send_email(new_google_user.email, email_subject, email_body)
     
         except Exception as e:

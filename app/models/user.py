@@ -22,14 +22,19 @@ class User(db.Model, UserMixin):
     comments = db.relationship("Comment", backref="user")
     news = db.relationship("News", backref="user")
     reactions = db.relationship("Reaction", backref="user")
-    post_likes = db.relationship('PostLikeIt', backref='user', lazy='dynamic')
-    comment_likes = db.relationship('CommentLikeIt', backref='user', lazy='dynamic')
+    post_likes = db.relationship('PostLikeIt', backref='user', 
+                                 lazy='dynamic')
+    comment_likes = db.relationship('CommentLikeIt', backref='user', 
+                                    lazy='dynamic')
     news_likes = db.relationship('NewsLikeIt', backref='user', lazy='dynamic')
-    reactions_likes = db.relationship('ReactionLikeIt', backref='user', lazy='dynamic')
+    reactions_likes = db.relationship('ReactionLikeIt', backref='user', 
+                                      lazy='dynamic')
     post_hates = db.relationship('PostHateIt', backref='user', lazy='dynamic')
-    comment_hates = db.relationship('CommentHateIt', backref='user', lazy='dynamic')
+    comment_hates = db.relationship('CommentHateIt', backref='user', 
+                                    lazy='dynamic')
     news_hates = db.relationship('NewsHateIt', backref='user', lazy='dynamic')
-    reactions_hates = db.relationship('ReactionHateIt', backref='user', lazy='dynamic')
+    reactions_hates = db.relationship('ReactionHateIt', backref='user', 
+                                      lazy='dynamic')
     
     @property
     def password(self):

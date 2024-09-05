@@ -13,7 +13,6 @@ from flask_uploads import UploadSet, configure_uploads, IMAGES
 import os
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 import logging
-# from app.utils import send_email
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
@@ -46,14 +45,9 @@ app.config['MAIL_DEFAULT_SENDER'] = 'piotrek.gaszczynski@gmail.com'
 
 mail = Mail(app)
 
-# send_email('piotrek.gaszczynski@gmail.com', 'asdsad', 'sadsadsadsad')
-
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 app.secret_key = b'my-super-top-secret-key'
-
-#app.config['JWT_TOKEN_LOCATION'] = ['cookies'] # NOT SURE?
-#jwt_token = request.cookies.get('access_token_cookie') # Demonstration how to get the cookie
 
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
@@ -92,9 +86,52 @@ def make_shell_context():
         "Newsletter": app.models.Newsletter,
     }
 
-from app.routes import main, session, users, rapidapi, posts, comments, favorites, notes, news, reactions, admin
-from app.models import User, Post, PostLikeIt, PostHateIt, Comment, CommentLikeIt, CommentHateIt, Favorite, Note, News, NewsLikeIt, NewsHateIt, Reaction, ReactionLikeIt, ReactionHateIt, Newsletter
-from app.models.admin import UserAdmin, FavoriteAdmin, NoteAdmin, PostAdmin, PostLikeItAdmin, PostHateItAdmin, CommentAdmin, CommentLikeItAdmin, CommentHateItAdmin, NewsAdmin, NewsLikeItAdmin, NewsHateItAdmin, ReactionAdmin, ReactionLikeItAdmin, ReactionHateItAdmin, NewsletterAdmin
+from app.routes import (main, 
+                        session, 
+                        users, 
+                        rapidapi, 
+                        posts, 
+                        comments, 
+                        favorites, 
+                        notes, 
+                        news, 
+                        reactions, 
+                        admin,
+                        )
+from app.models import (User,
+                        Post, 
+                        PostLikeIt, 
+                        PostHateIt, 
+                        Comment, 
+                        CommentLikeIt, 
+                        CommentHateIt, 
+                        Favorite, 
+                        Note, 
+                        News, 
+                        NewsLikeIt, 
+                        NewsHateIt, 
+                        Reaction, 
+                        ReactionLikeIt, 
+                        ReactionHateIt, 
+                        Newsletter,
+                        )
+from app.models.admin import (UserAdmin, 
+                              FavoriteAdmin, 
+                              NoteAdmin, 
+                              PostAdmin, 
+                              PostLikeItAdmin, 
+                              PostHateItAdmin, 
+                              CommentAdmin, 
+                              CommentLikeItAdmin, 
+                              CommentHateItAdmin, 
+                              NewsAdmin, 
+                              NewsLikeItAdmin, 
+                              NewsHateItAdmin, 
+                              ReactionAdmin, 
+                              ReactionLikeItAdmin, 
+                              ReactionHateItAdmin, 
+                              NewsletterAdmin
+                              )
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

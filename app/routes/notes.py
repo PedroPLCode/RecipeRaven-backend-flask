@@ -22,7 +22,8 @@ def create_note():
             else:
                 note.content = data["content"]
         else:
-            new_note = Note(favorite_id=data["favorite_id"], content=data["content"])
+            new_note = Note(favorite_id=data["favorite_id"], 
+                            content=data["content"])
             db.session.add(new_note)
 
         db.session.commit()

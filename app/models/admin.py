@@ -1,7 +1,6 @@
 from flask_admin.contrib.sqla import ModelView
 from flask import redirect, url_for
 from flask_login import current_user
-from config import Config
 
 class AdminModelView(ModelView):
     def is_accessible(self):
@@ -11,7 +10,9 @@ class AdminModelView(ModelView):
         return redirect(url_for('admin_login'))
 
 class UserAdmin(AdminModelView):
-    column_list = ('id', 'login', 'email', 'email_confirmed', 'name', 'google_user', 'original_google_picture', 'about', 'picture', 'creation_date', 'last_login', 'role')
+    column_list = ('id', 'login', 'email', 'email_confirmed', 'name', 'google_user',
+                   'original_google_picture', 'about', 'picture', 'creation_date', 
+                   'last_login', 'role')
     column_filters = ('login', 'email', 'name', 'google_user', 'about', 'role')
     form_excluded_columns = ('password_hash',)
 
@@ -24,11 +25,13 @@ class NoteAdmin(AdminModelView):
     column_filters = ('content', 'favorite_id')
 
 class PostAdmin(AdminModelView):
-    column_list = ('id', 'title', 'content', 'guest_author', 'creation_date', 'user_id')
+    column_list = ('id', 'title', 'content', 'guest_author', 'creation_date', 
+                   'user_id')
     column_filters = ('title', 'content', 'guest_author', 'user_id')
 
 class CommentAdmin(AdminModelView):
-    column_list = ('id', 'content', 'guest_author', 'creation_date', 'user_id', 'post_id')
+    column_list = ('id', 'content', 'guest_author', 'creation_date', 'user_id', 
+                   'post_id')
     column_filters = ('content', 'guest_author', 'user_id', 'post_id')
 
 class NewsAdmin(AdminModelView):
@@ -36,7 +39,8 @@ class NewsAdmin(AdminModelView):
     column_filters = ('title', 'content', 'user_id')
 
 class ReactionAdmin(AdminModelView):
-    column_list = ('id', 'content', 'guest_author', 'creation_date', 'user_id', 'news_id')
+    column_list = ('id', 'content', 'guest_author', 'creation_date', 'user_id', 
+                   'news_id')
     column_filters = ('content', 'guest_author', 'user_id', 'news_id')
 
 class PostLikeItAdmin(AdminModelView):
@@ -72,5 +76,6 @@ class ReactionHateItAdmin(AdminModelView):
     column_filters = ('user_id', 'reaction_id')
     
 class NewsletterAdmin(AdminModelView):
-    column_list = ('id', 'title', 'content', 'recipients', 'comment', 'sent_date')
+    column_list = ('id', 'title', 'content', 'recipients', 'comment', 
+                   'sent_date')
     column_filters = ('title', 'content', 'comment')
