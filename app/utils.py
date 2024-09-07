@@ -70,12 +70,14 @@ def process_post_news(item):
         'content': item.content,
         'title': item.title,
         **user_info,
-        'guest_author': item.guest_author if item.guest_author else None,
         **dates,
         'likes': [like.user_id for like in item.likes],
         'hates': [hate.user_id for hate in item.hates],
     }
 
+    if hasattr(item, 'guest_author'):
+            result['guest_author'] = item.guest_author if item.guest_author else None,
+        
     if hasattr(item, 'comments'):
         result['comments'] = [process_comments_reaction(comment) for comment in item.comments]
         

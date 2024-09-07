@@ -18,6 +18,9 @@ def fetch_receipes():
     random = (data_dict.get('random', False))
     link_next_page = (data_dict.get('link_next_page'), False)
     
+    diet_labels = ['low-carb', 'low-fat']
+    health_labels = ['vegan', 'vegetarian', 'gluten-free', 'alcohol-free']
+    
     headers = {
         "Accept-Language": "en",
         "X-RapidAPI-Key": PRIVATE_API_KEY,
@@ -35,28 +38,15 @@ def fetch_receipes():
             "random": random,
         }
         
-        diet_labels = ['low-carb', 'low-fat']
-        health_labels = ['vegan', 'vegetarian', 'gluten-free', 'alcohol-free']
-        excluded_index = 0
-        health_index = 0
-        diet_index = 0
-        
         if ingredients_array:
-            querystring["q"] = ' '.join(ingredients_array)
+            querystring["q"] = ingredients_array
         
         if excluded_array:
-            for single_excluded in excluded_array:
-                querystring[f"excluded[{excluded_index}]"] = single_excluded
-                excluded_index += 1
-            
-        if params_array:
-            for single_param in params_array:
-                if single_param in diet_labels:
-                    querystring[f"diet[{diet_index}]"] = single_param
-                    diet_index += 1
-                elif single_param in health_labels:
-                    querystring[f"health[{health_index}]"] = single_param
-                    health_index += 1
+            querystring["excluded"] = excluded_array
+
+        if isinstance(params_array, list):
+            querystring["diet"] = [single_param for single_param in params_array if single_param in diet_labels]
+            querystring["health"] = [single_param for single_param in params_array if single_param in health_labels]
                     
     try:
         response = requests.get(url, headers=headers, params=querystring)
@@ -69,20 +59,39 @@ def fetch_receipes():
         }
         
         for single_hit in response_data['hits']:
-            single_result = {
-                'url': single_hit['recipe']['url'],
-                'image_SMALL_url': single_hit['recipe']['images']['SMALL']['url'],
-                'image_REGULAR_url':  single_hit['recipe']['images']['REGULAR']['url'],
-                'label': single_hit['recipe']['label'],
-                'dishType': single_hit['recipe']['dishType'],
-                'mealType': single_hit['recipe']['mealType'],
-                'cuisineType': single_hit['recipe']['cuisineType'],
-                'cautions': single_hit['recipe']['cautions'],
-                'totalTime': single_hit['recipe']['totalTime'],
-                'dietLabels': single_hit['recipe']['dietLabels'],
-                'healthLabels': single_hit['recipe']['healthLabels'],
-                'calories': single_hit['recipe']['calories'],
-            }
+            single_result = {}
+            
+            if 'dishType' in single_hit['recipe']:
+                single_result['dishType'] = single_hit['recipe']['dishType']
+            if 'url' in single_hit['recipe']:
+                single_result['url'] = single_hit['recipe']['url']   
+            if 'label' in single_hit['recipe']:
+                single_result['label'] = single_hit['recipe']['label']
+            if 'mealType' in single_hit['recipe']:
+                single_result['mealType'] = single_hit['recipe']['mealType'] 
+            if 'cuisineType' in single_hit['recipe']:
+                single_result['cuisineType'] = single_hit['recipe']['cuisineType']
+            if 'cautions' in single_hit['recipe']:
+                single_result['cautions'] = single_hit['recipe']['cautions']
+            if 'totalTime' in single_hit['recipe']:
+                single_result['totalTime'] = single_hit['recipe']['totalTime']
+            if 'dietLabels' in single_hit['recipe']:
+                single_result['dietLabels'] = single_hit['recipe']['dietLabels']
+            if 'healthLabels' in single_hit['recipe']:
+                single_result['healthLabels'] = single_hit['recipe']['healthLabels']                
+            if 'calories' in single_hit['recipe']:
+                single_result['calories'] = single_hit['recipe']['calories']                
+            if 'images' in single_hit['recipe']:
+                images = single_hit['recipe']['images']
+                if 'SMALL' in images:
+                    small = images['SMALL']
+                    if 'url' in small:
+                        single_result['image_SMALL_url'] = small['url']
+                if 'REGULAR' in images:
+                    regular = images['REGULAR']
+                    if 'url' in regular:
+                        single_result['image_REGULAR_url'] = regular['url']
+            
             search_results['hits'].append(single_result)
         return search_results
     except Exception as error:
