@@ -51,7 +51,8 @@ def create_comment():
         email_body = POST_COMMENT_EMAIL_BODY.format(
             username=post.user.name.title() if post.user.name else post.user.login,
             post_title=post.title,
-            post_comment=new_comment.content
+            post_comment=new_comment.content,
+            comment_author=(user.name.title() if user.name else user.login) if user else data["guest_author"]
         )
         send_email(post.user.email, email_subject, email_body)
         

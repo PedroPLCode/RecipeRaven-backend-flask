@@ -17,15 +17,15 @@ CREATE_USER_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu:</p>
+                            <p>Welcome in Recipe Raven App</p>
+                            <p>Explore our app</p>
                             <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
+                                <li>Advanced receipes search</li>
+                                <li>Advanced user account features</li>
+                                <li>News and Board</li>
                             </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
@@ -60,20 +60,16 @@ CONFIRM_EMAIL_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu: {link}</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Welcome in Recipe Raven App</p>
+                            <p>Confirm your email address by clicking this link</p>
+                            <p>{link}</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>
@@ -103,20 +99,16 @@ DELETE_USER_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu:</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Recipe Raven App account deleted</p>
+                            <p>Sad news {username}, but Your account was succesfully removed.</p>
+                            <p>Hopefully you will be back someday.</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>
@@ -146,20 +138,16 @@ RESET_PASSWORD_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu: {link}</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Recipe Raven App password reset</p>
+                            <p>{username}, reset your password by clicking this link</p>
+                            <p>{link}</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>
@@ -189,20 +177,15 @@ PASSWORD_CHANGED_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu:</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Recipe Raven App password changed</p>
+                            <p>{username}, Your password was succesfully changed.</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>
@@ -232,20 +215,16 @@ POST_COMMENT_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu:</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Recipe Raven App</p>
+                            <p>{comment_author} just add a new comment to Your post {post_title}.</p>
+                            <p>{post_comment}</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>
@@ -275,20 +254,16 @@ NEWS_REACTION_EMAIL_BODY = """
                     </tr>
                     <tr>
                         <td style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-                            <p>Dziękujemy za zapisanie się do naszego newslettera, {username}. Cieszymy się, że jesteś z nami!</p>
-                            <p>Oto, co przygotowaliśmy dla Ciebie w tym miesiącu:</p>
-                            <ul>
-                                <li>Nowe artykuły na blogu</li>
-                                <li>Specjalne oferty i zniżki</li>
-                                <li>Porady i wskazówki</li>
-                            </ul>
-                            <p>Życzymy miłego dnia!</p>
-                            <p>Zespół <strong>Twojej Firmy</strong></p>
+                            <p>Recipe Raven App</p>
+                            <p>{reaction_author} just add a new reaction to Your News {news_title}.</p>
+                            <p>{news_reaction}</p>
+                            <p>Have a nice day!</p>
+                            <p>Team <strong>Receipe Raven</strong></p>
                         </td>
                     </tr>
                     <tr>
                         <td style="text-align: center; padding-top: 20px;">
-                            <a href="https://twojafirma.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
+                            <a href="https://reciperaven.pl" style="background-color: #007BFF; color: #ffffff; padding: 10px 20px; text-decoration: none; font-family: Arial, sans-serif; border-radius: 5px;">Odwiedź naszą stronę</a>
                         </td>
                     </tr>
                 </table>

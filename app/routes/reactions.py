@@ -52,7 +52,8 @@ def create_reaction():
         email_body = NEWS_REACTION_EMAIL_BODY.format(
             username=news.user.name.title() if news.user.name else news.user.login, 
             news_title=news.title, 
-            news_reaction=new_reaction.content
+            news_reaction=new_reaction.content,
+            reaction_author=(user.name.title() if user.name else user.login) if user else data["guest_author"]
         )
         send_email(news.user.email, email_subject, email_body)
         
