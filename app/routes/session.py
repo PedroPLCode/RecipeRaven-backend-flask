@@ -1,4 +1,4 @@
-from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, db, mail
+from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, limiter, db, mail
 from app.utils import *
 from flask import jsonify, request
 from flask_mail import Message
@@ -32,6 +32,7 @@ def refresh_expiring_jwts(response):
     
 @app.route('/token', methods=["POST"])
 @cross_origin()
+@limiter.limit("5 per minute")
 def create_token():
     login = request.json.get("login", None)
     password = request.json.get("password", None)
