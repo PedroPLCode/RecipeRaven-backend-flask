@@ -35,21 +35,21 @@ def send_email(email, subject, body_html):
 
 def format_date(date_str):
     if not date_str:
-        return None
+        return False
     for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
         try:
             return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d %H:%M:%S CET")
         except ValueError:
             continue
-    return None
+    return False
     
     
 def get_author_info(user):
     return {
-        'author': user.name or user.login if user else None,
-        'author_picture': user.picture if user else None,
-        'author_google_user': user.google_user if user else None,
-        'author_original_google_picture': user.original_google_picture if user else None
+        'author': user.name or user.login if user else False,
+        'author_picture': user.picture if user else False,
+        'author_google_user': user.google_user if user else False,
+        'author_original_google_picture': user.original_google_picture if user else False
     }
     
 
@@ -76,7 +76,7 @@ def process_post_news(item):
     }
 
     if hasattr(item, 'guest_author'):
-            result['guest_author'] = item.guest_author if item.guest_author else None,
+            result['guest_author'] = item.guest_author or False
         
     if hasattr(item, 'comments'):
         result['comments'] = [process_comments_reaction(comment) for comment in item.comments]
@@ -93,8 +93,8 @@ def process_comments_reaction(item):
         'id': item.id,
         'user_id': item.user_id,
         'content': item.content,
-        'author': item.user.name or item.user.login if item.user else None,
-        'guest_author': item.guest_author if item.guest_author else None,
+        'author': item.user.name or item.user.login if item.user else False,
+        'guest_author': item.guest_author if item.guest_author else False,
         'creation_date': format_date(str(item.creation_date)),
         'last_update': format_date(str(item.last_update)),
     }
