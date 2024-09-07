@@ -1,14 +1,12 @@
-from app import app, db, mail, serializer
-from flask_mail import Message
+from app import app, db, serializer
 from app.models import User, Favorite, Note
 from app.utils import *
-from werkzeug.utils import secure_filename
+from app.routes import limiter
 import os
 from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from itsdangerous import URLSafeTimedSerializer, BadSignature
 from pathlib import Path
 from app.emails_templates import (CREATE_USER_EMAIL_BODY, 
                                   CONFIRM_EMAIL_EMAIL_BODY, 
@@ -95,6 +93,7 @@ def check_user_password():
     
 @app.route('/api/users', methods=["POST"])
 @cross_origin()
+@limiter.limit("5 per minute")
 def create_user():
     try:
         data = request.form.to_dict()

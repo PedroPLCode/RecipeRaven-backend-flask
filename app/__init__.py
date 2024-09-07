@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 from flask_mail import Mail
 from flask.cli import load_dotenv
 from config import Config
@@ -11,10 +10,8 @@ from datetime import timedelta
 from flask_jwt_extended import JWTManager
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 import os
-from itsdangerous import URLSafeTimedSerializer, BadSignature
+from itsdangerous import URLSafeTimedSerializer
 import logging
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
@@ -23,12 +20,6 @@ logging.basicConfig(level=logging.INFO,
 logging.info('starting app')
 
 app = Flask(__name__, static_folder='static')
-
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=[]
-)
 
 load_dotenv()  
 

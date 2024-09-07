@@ -1,14 +1,13 @@
-from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, limiter, db, mail
+from app import GOOGLE_CLIENT_ID, GOOGLE_SECRET_KEY, app, db
 from app.utils import *
+from app.routes import limiter
 from flask import jsonify, request
-from flask_mail import Message
 from datetime import datetime as dt
 from flask_cors import cross_origin
 from datetime import datetime, timedelta, timezone
 from app.models import User
 import json
 import requests
-from dotenv import load_dotenv
 from app.emails_templates import CREATE_USER_EMAIL_BODY
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies

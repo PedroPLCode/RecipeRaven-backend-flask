@@ -76,11 +76,9 @@ def process_post_news(item):
     }
 
     if hasattr(item, 'guest_author'):
-            result['guest_author'] = item.guest_author or False
-        
+        result['guest_author'] = item.guest_author or False
     if hasattr(item, 'comments'):
         result['comments'] = [process_comments_reaction(comment) for comment in item.comments]
-        
     if hasattr(item, 'reactions'):
         result['reactions'] = [process_comments_reaction(reaction) for reaction in item.reactions]
 
@@ -101,7 +99,6 @@ def process_comments_reaction(item):
     
     if item.likes:
         result['likes'] = [like.user_id for like in item.likes],
-        
     if item.hates:
         result['hates'] = [hate.user_id for hate in item.hates],
     

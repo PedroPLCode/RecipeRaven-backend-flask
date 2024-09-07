@@ -4,7 +4,7 @@ from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
-from flask_jwt_extended import get_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from config import Config
 
 @app.route('/api/news', methods=['GET'])

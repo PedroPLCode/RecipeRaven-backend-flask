@@ -1,5 +1,4 @@
 from app import db
-from datetime import datetime as dt
 
 class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
