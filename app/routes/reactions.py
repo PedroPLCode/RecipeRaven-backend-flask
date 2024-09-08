@@ -77,7 +77,7 @@ def update_reaction(reaction_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         reaction = Reaction.query.filter(
             (Reaction.id == reaction_id) & 
-            ((Reaction.user_id == user.id) | (user.id == Config.admin_id))
+            ((Reaction.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
         
         reaction.content = data["content"]
@@ -103,7 +103,7 @@ def delete_reaction(reaction_id):
             (Reaction.id == reaction_id)
         ).join(News).filter(
             (Reaction.user_id == user.id) | 
-            (user.id == Config.admin_id) | 
+            (user.role == 'admin') | 
             (News.user_id == user.id)
         ).first_or_404()
         db.session.delete(reaction_to_delete)

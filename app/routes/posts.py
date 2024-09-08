@@ -74,7 +74,7 @@ def update_post(post_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         post = Post.query.filter(
             (Post.id == post_id) & 
-            ((Post.user_id == user.id) | (user.id == Config.admin_id))
+            ((Post.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
         
         if data["content"] == '' and data["title"] == '':
@@ -102,7 +102,7 @@ def delete_post(post_id):
         if user:
             post_to_delete = Post.query.filter(
             (Post.id == post_id) & 
-            ((Post.user_id == user.id) | (user.id == Config.admin_id))
+            ((Post.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
             
             post_comments = Comment.query.filter(
@@ -113,7 +113,7 @@ def delete_post(post_id):
             else: 
                 db.session.delete(post_to_delete)
                 db.session.commit()
-                return jsonify(post_to_delete), 200
+                return jsonify({"msg": "Post deleted succesfully."}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401
     

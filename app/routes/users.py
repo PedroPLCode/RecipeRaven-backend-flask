@@ -232,7 +232,9 @@ def change_user():
             if user.verify_password(old_password):
                 user.password = new_password
                 email_subject = 'Your Password has been changed.'
-                email_body = f'Hello {user.name.title()}. passwd changed.'
+                email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
+                    username=user.name.title() if user.name else user.login
+                    )
                 send_email(user.email, email_subject, email_body)
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400

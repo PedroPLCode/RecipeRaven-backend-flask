@@ -19,7 +19,11 @@ logging.basicConfig(level=logging.INFO,
                     )
 logging.info('starting app')
 
-app = Flask(__name__, static_folder='static')
+def create_app():
+    app = Flask(__name__, static_folder='static')
+    return app
+
+app = create_app()
 
 load_dotenv()  
 

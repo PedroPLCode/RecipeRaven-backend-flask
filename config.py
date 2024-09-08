@@ -12,3 +12,9 @@ class Config:
     
     UPLOADED_PHOTOS_DEST = os.path.join(os.getcwd(), 'app/static/uploaded_photos')
     ALLOWED_PHOTOS_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    
+class ProductionConfig(Config):
+    DEBUG = False
+
+class DevelopmentConfig(Config):
+    DEBUG = True

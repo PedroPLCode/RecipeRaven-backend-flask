@@ -47,14 +47,15 @@ def create_comment():
         db.session.add(new_comment)
         db.session.commit()
         
-        email_subject = 'New Comment to Your Post'
-        email_body = POST_COMMENT_EMAIL_BODY.format(
-            username=post.user.name.title() if post.user.name else post.user.login,
-            post_title=post.title,
-            post_comment=new_comment.content,
-            comment_author=(user.name.title() if user.name else user.login) if user else data["guest_author"]
-        )
-        send_email(post.user.email, email_subject, email_body)
+        if post.user_id and not post.guest_author:
+            email_subject = 'New Comment to Your Post'
+            email_body = POST_COMMENT_EMAIL_BODY.format(
+                username=post.user.name.title() if post.user.name else post.user.login,
+                post_title=post.title,
+                post_comment=new_comment.content,
+                comment_author=(user.name.title() if user.name else user.login) if user else data["guest_author"]
+            )
+            send_email(post.user.email, email_subject, email_body)
         
         return jsonify({"msg": "Comment created successfully.", 
                         "location": f'/comments/{new_comment.id}'}), 201
@@ -76,7 +77,7 @@ def update_comments(comment_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         comment = Comment.query.filter(
             (Comment.id == comment_id) & 
-            ((Comment.user_id == user.id) | (user.id == Config.admin_id))
+            ((Comment.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
         comment.content = data["content"]
         comment.last_update = dt.utcnow()
@@ -100,7 +101,7 @@ def delete_comment(comment_id):
             (Comment.id == comment_id)
         ).join(Post).filter(
             (Comment.user_id == user.id) | 
-            (user.id == Config.admin_id) | 
+            (user.role == 'admin') | 
             (Post.user_id == user.id)
         ).first_or_404()
         db.session.delete(comment_to_delete)

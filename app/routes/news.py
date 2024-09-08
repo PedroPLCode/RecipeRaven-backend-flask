@@ -58,7 +58,7 @@ def update_news(news_id):
         user = User.query.filter_by(login=current_user).first_or_404()
         news = News.query.filter(
             (News.id == news_id) & 
-            ((News.user_id == user.id) | (user.id == Config.admin_id))
+            ((News.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
         
         if data["content"] == '' and data["title"] == '':
@@ -86,7 +86,7 @@ def delete_news(news_id):
         if user:
             news_to_delete = News.query.filter(
             (News.id == news_id) & 
-            ((News.user_id == user.id) | (user.id == Config.admin_id))
+            ((News.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
             
             news_reactions = Reaction.query.filter(
