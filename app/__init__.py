@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
                     filename="repipe_raven.log"
                     )
-logging.info('starting app')
+logging.info('Recipe Raven App starting.')
 
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -37,6 +37,9 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+app.config['SESSION_PERMANENT'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465

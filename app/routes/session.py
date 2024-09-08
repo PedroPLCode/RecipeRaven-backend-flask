@@ -8,9 +8,10 @@ from datetime import datetime, timedelta, timezone
 from app.models import User
 import json
 import requests
+import logging
 from app.emails_templates import CREATE_USER_EMAIL_BODY
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
-                               unset_jwt_cookies
+                               unset_jwt_cookies, jwt_required
 
 @app.after_request
 def refresh_expiring_jwts(response):
@@ -43,12 +44,14 @@ def create_token():
             response = {"access_token": access_token, 
                         'email_confirmed': user.email_confirmed}
             user.last_login = dt.utcnow()
+            logging.info(f'User {user.login} logged in.')
             db.session.commit()
             return response
         else:
             response = {"email_confirmed": user.email_confirmed}
             return response
     else:
+        logging.warn(f'User {user.login} trying to login. Invalid password.')
         return {"msg": "Wrong email or password."}, 401
 
 
@@ -105,6 +108,7 @@ def create_google_token():
             db.session.add(new_google_user)
             db.session.commit()
             user = new_google_user
+            logging.info(f'User {user.login} created.')
             
             email_subject = 'Welcome in RecipeRavenApp.'
             email_body = CREATE_USER_EMAIL_BODY.format(
@@ -115,6 +119,7 @@ def create_google_token():
         except Exception as e:
             return jsonify({"msg": str(e)}), 500
     else:
+        logging.info(f'User {user.login} logged in.')
         user.last_login = dt.utcnow()
         db.session.commit()
 
@@ -126,7 +131,10 @@ def create_google_token():
 
 @app.route("/logout", methods=["POST"])
 @cross_origin()
+@jwt_required()
 def logout():
+    current_user = get_jwt_identity()
     response = jsonify({"msg": "Logout successful."})
     unset_jwt_cookies(response)
+    logging.info(f'User {current_user} logged out.')
     return response

@@ -4,6 +4,7 @@ from flask_mail import Message
 from app.models import User
 import os
 from datetime import datetime, timedelta
+import logging
 
 def get_random_topic(array):
     min_val = 0
@@ -28,6 +29,7 @@ def send_email(email, subject, body_html):
     message.html = body_html
     try:
         mail.send(message)
+        logging.info(f'Email {subject} to {email} sent.')
         return True
     except Exception as e:
         return str(e)

@@ -1,9 +1,10 @@
 from flask_admin import AdminIndexView
 from app import admin, db, app
+import logging
 from datetime import datetime as dt
 from werkzeug.security import check_password_hash
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from app.models.admin import (UserAdmin, 
                               FavoriteAdmin, 
                               NoteAdmin, 
@@ -92,8 +93,9 @@ def admin_newsletter():
                                 recipients=email_addresses)
     db.session.add(new_newsletter)
     db.session.commit()
-    flash(f'Newsletter sent to {len(email_addresses)} recipients and saved in db.',
-    'success')
+    log_msg = f'Newsletter sent to {len(email_addresses)} recipients and saved in db.'
+    logging.info(log_msg)
+    flash(log_msg, 'success')
     
     return redirect(url_for('admin.index'))
 
@@ -107,12 +109,14 @@ def admin_login():
 
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
+            logging.info(f'Admin {user.login} logged in.')
             flash(f'{dt.utcnow()} Logged in successfully.'
                   f'Welcome back {user.name if user.name else user.login}', 
                   'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('admin.index'))
         else:
+            logging.warn(f'Admin {user.login} trying to login. Invalid password.')
             flash('Invalid email or password.', 'danger')
             
     return render_template('admin/admin_login.html')
@@ -121,6 +125,8 @@ def admin_login():
 @app.route('/admin/logout')
 @login_required
 def admin_logout():
+    admin_login = current_user.login
     logout_user()
+    logging.info(f'Admin {admin_login} logged out.')
     flash('Logged out.', 'success')
     return redirect(url_for('admin_login'))

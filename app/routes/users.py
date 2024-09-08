@@ -3,6 +3,7 @@ from app.models import User, Favorite, Note
 from app.utils import *
 from app.routes import limiter
 import os
+import logging
 from flask import jsonify, request
 from flask_cors import cross_origin
 from datetime import datetime as dt
@@ -129,6 +130,7 @@ def create_user():
                         )
         db.session.add(new_user)
         db.session.commit()
+        logging.info(f'User {new_user.login} created.')
         
         token = serializer.dumps(email, salt='confirm-email')
         confirm_url = f'http://127.0.0.1:3000/user/confirm/{token}'
@@ -184,6 +186,7 @@ def confirm_user_email(token):
             return jsonify({"error": "User with this token not found."}), 404
 
         user.email_confirmed = True
+        logging.info(f'User {user.login} email confirmed.')
         db.session.commit()
             
         email_subject = 'Welcome in Recipe Raven App.'
@@ -220,6 +223,7 @@ def change_user():
                          
                 file.save(filepath)
                 data['picture'] = filename
+                logging.info(f'User {user.login} picture changed.')
             except Exception as e:
                 return jsonify({"msg": f"Error saving file: {str(e)}"}), 500
 
@@ -231,6 +235,7 @@ def change_user():
         if old_password and new_password:
             if user.verify_password(old_password):
                 user.password = new_password
+                logging.info(f'User {user.login} password changed.')
                 email_subject = 'Your Password has been changed.'
                 email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
                     username=user.name.title() if user.name else user.login
@@ -243,6 +248,7 @@ def change_user():
         user.name = data.get('name', user.name)
         user.about = data.get('about', user.about)
         db.session.commit()
+        logging.info(f'User {user.login} details changed.')
 
         return jsonify({"msg": "User details updated successfully."}), 200
 
@@ -290,6 +296,8 @@ def delete_user():
 
         db.session.delete(user)
         db.session.commit()
+        
+        logging.info(f'User {user.login} deleted.')
         
         response_body = {
             "name": user.name,
@@ -351,6 +359,8 @@ def reset_password(token):
 
         user.password = new_password
         db.session.commit()
+        
+        logging.info(f'User {user.login} password changed.')
         
         email_subject = 'Your Password has been changed.'
         email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
