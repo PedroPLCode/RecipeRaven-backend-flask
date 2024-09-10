@@ -38,9 +38,10 @@ def get_favorites():
 def create_favorite():
     try:
         current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404(
-            description="User not found."
-        )
+        user = User.query.filter_by(login=current_user).first_or_404()
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
 
         if user:
             new_favorite = {}
@@ -86,8 +87,8 @@ def create_favorite():
             note = Note(favorite_id=favorite.id, content='')
             db.session.add(note)
             db.session.commit()
-            
-            return '', 201, {'location': f'/favorites/{favorite.id}'}
+
+            return jsonify({"msg": "Favorite created succesfully.", 'location': f'/favorites/{favorite.id}'}), 201
         
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -99,13 +100,17 @@ def create_favorite():
 def delete_favorite(favorite_to_delete_id: int):
     try:
         current_user = get_jwt_identity()
-        user = User.query.filter_by(login=current_user).first_or_404(
-            description="User not found."
-        )
+        user = User.query.filter_by(login=current_user).first_or_404()
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
+        
         favorite_to_delete = Favorite.query.filter_by(
-            id=favorite_to_delete_id, user_id=user.id).first_or_404(
-                description="Favorite not found."
-            )
+            id=favorite_to_delete_id, user_id=user.id).first_or_404()
+        
+        if not favorite_to_delete:
+            return jsonify({"msg": "Favorite not found."}), 400
+        
         note_to_delete = Note.query.filter_by(favorite_id=favorite_to_delete.id).first()
 
         try:

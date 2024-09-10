@@ -19,15 +19,18 @@ def create_note():
         if note:
             if data["content"] == '':
                 db.session.delete(note)
+                db.session.commit()
+                return jsonify({"msg": "Note deleted."}), 400
             else:
                 note.content = data["content"]
+                db.session.commit()
+                return jsonify({"msg": "Note updated."}), 400
         else:
             new_note = Note(favorite_id=data["favorite_id"], 
                             content=data["content"])
             db.session.add(new_note)
-
-        db.session.commit()
+            db.session.commit()
+            return jsonify({"msg": "Note created."}), 400
         
-        return '', 201, {'location': f'/notes/{note.id if note else new_note.id}'}
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

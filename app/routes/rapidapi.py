@@ -97,7 +97,7 @@ def fetch_receipes():
             search_results['hits'].append(single_result)
         return search_results
     except Exception as error:
-        return jsonify({ 'error': f'{error}' }), 500
+        return jsonify({ 'msg': f'{error}' }), 500
 
 
 @app.route('/api/quote', methods=['GET'])
@@ -115,4 +115,4 @@ def fetch_quotes():
         response = requests.get(url, headers=headers)
         return response.json()
     except Exception as error:
-        return jsonify({ 'error': f'{error}' }), 500
+        return jsonify({ 'msg': f'{error}' }), 500

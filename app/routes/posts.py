@@ -68,25 +68,40 @@ def update_post(post_id):
         current_user = get_jwt_identity()
         data = request.get_json()
         
-        if not data:
+        if not data or not data["title"] or not data["content"]:
             return jsonify({"msg": "No input data provided."}), 400
         
         user = User.query.filter_by(login=current_user).first_or_404()
+        
+        if not user:
+            return jsonify({"msg": "Error. User not found."}), 400
+        
         post = Post.query.filter(
             (Post.id == post_id) & 
             ((Post.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
         
+        if not post:
+            return jsonify({"msg": "Error. Post not found."}), 400
+        
         if data["content"] == '' and data["title"] == '':
+            
+            post_comments = Comment.query.filter(
+                Comment.post_id == post.id
+                ).first()
+            if post_comments:
+                return jsonify({"msg": "Post still have comments. Cant delete."}), 400
+            
             db.session.delete(post)
+            db.session.commit()
+            return jsonify({"msg": "Post deleted."}), 400
         else:
             post.title = data["title"]
             post.content = data["content"]
             post.last_update = dt.utcnow()
-        db.session.commit()
-        
-        return jsonify({"msg": "Post updated successfully.", 
-                        "location": f'/posts/{post.id}'}), 200
+            db.session.commit()
+            return jsonify({"msg": "Post updated successfully.", 
+                            "location": f'/posts/{post.id}'}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401
 
@@ -99,17 +114,24 @@ def delete_post(post_id):
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() 
         
+        if not user:
+            return jsonify({"msg": "Error. User not found."}), 400        
+        
         if user:
             post_to_delete = Post.query.filter(
             (Post.id == post_id) & 
             ((Post.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
             
+            if not post_to_delete:
+                return jsonify({"msg": "Error. Post not found."}), 400
+        
             post_comments = Comment.query.filter(
                 Comment.post_id == post_to_delete.id
                 ).first()
             if post_comments:
-                return {'Post still have comments. Cant delete.'}, 400
+                return jsonify({"msg": "Post still have comments. Cant delete."}), 400
+            
             else: 
                 db.session.delete(post_to_delete)
                 db.session.commit()

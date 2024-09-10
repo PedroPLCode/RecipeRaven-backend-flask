@@ -41,14 +41,16 @@ def create_token():
     if user and user.verify_password(password):
         if user.email_confirmed:
             access_token = create_access_token(identity=login)
-            response = {"access_token": access_token, 
+            response = {"msg": "Logged in succesfully",
+                        "access_token": access_token, 
                         'email_confirmed': user.email_confirmed}
             user.last_login = dt.utcnow()
             logging.info(f'User {user.login} logged in.')
             db.session.commit()
             return response
         else:
-            response = {"email_confirmed": user.email_confirmed}
+            response = {"msg": "Email not confirmed",
+                        "email_confirmed": user.email_confirmed}
             return response
     else:
         logging.warn(f'User {user.login} trying to login. Invalid password.')
@@ -127,7 +129,9 @@ def create_google_token():
             return jsonify({'msg': 'Login or email already exists.'}), 400
 
     access_token = create_access_token(identity=google_login)
-    response = {"access_token": access_token}
+    response = {"access_token": access_token,
+                "msg": "Logged in succesfully",
+                }
         
     return jsonify(response), 200
 

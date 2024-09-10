@@ -140,7 +140,7 @@ def create_user():
             )
         send_email(email, email_subject, email_body)
         
-        return jsonify({"reset_url": confirm_url}), 200
+        return jsonify({"msg": 'User created. Check your email.'}), 200
             
     except Exception as e:
         return jsonify({"msg": str(e)}), 500
@@ -167,7 +167,7 @@ def reconfirm_user():
                 link=confirm_url
             )
             send_email(user.email, email_subject, email_body)
-            return jsonify({"reset_url": confirm_url}), 200
+            return jsonify({"msg": 'Email send. Check your email.'}), 200
         else:
             return jsonify({'msg': 'Email already confirmed.'}), 200
 
@@ -183,7 +183,7 @@ def confirm_user_email(token):
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            return jsonify({"error": "User with this token not found."}), 404
+            return jsonify({"msg": "User with this token not found."}), 404
 
         user.email_confirmed = True
         logging.info(f'User {user.login} email confirmed.')
@@ -211,6 +211,9 @@ def change_user():
         data = request.form.to_dict()
         file = request.files.get('picture')
         
+        if not user:
+            return jsonify({"msg": "Error. User not found."}), 400        
+        
         if file:
             try:    
                 path = Path(file.filename)
@@ -224,6 +227,7 @@ def change_user():
                 file.save(filepath)
                 data['picture'] = filename
                 logging.info(f'User {user.login} picture changed.')
+                return jsonify({"msg": "Picture changed"}), 201
             except Exception as e:
                 return jsonify({"msg": f"Error saving file: {str(e)}"}), 500
 
@@ -241,6 +245,7 @@ def change_user():
                     username=user.name.title() if user.name else user.login
                     )
                 send_email(user.email, email_subject, email_body)
+                return jsonify({"msg": "Password changed"}), 201
             else:
                 return jsonify({"msg": "Old password is incorrect"}), 400
 

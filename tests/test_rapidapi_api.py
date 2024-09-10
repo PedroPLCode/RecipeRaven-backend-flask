@@ -8,7 +8,6 @@ def client():
     with app.test_client() as client:
         yield client
 
-# Mockowanie requests.get dla /api/search
 @patch('requests.get')
 def test_fetch_recipes_success(mock_get, client):
     mock_response_data = {
@@ -48,11 +47,9 @@ def test_fetch_recipes_success(mock_get, client):
         '_links': {}
     }
 
-    # Ustawiamy zamockowaną odpowiedź
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = mock_response_data
 
-    # Wysyłamy żądanie POST do endpointu
     response = client.post('/api/search', json={
         'ingredients': ['tomato', 'basil'],
         'excluded': ['meat'],
@@ -60,7 +57,6 @@ def test_fetch_recipes_success(mock_get, client):
         'random': True
     })
 
-    # Sprawdzamy, czy odpowiedź jest poprawna
     assert response.status_code == 200
     data = response.get_json()
     assert data['count'] == 2
@@ -68,13 +64,11 @@ def test_fetch_recipes_success(mock_get, client):
     assert data['hits'][0]['label'] == 'Test Recipe 1'
     assert data['hits'][1]['label'] == 'Test Recipe 2'
 
-# Testowanie błędu podczas wyszukiwania przepisów
 @patch('requests.get')
 def test_fetch_recipes_failure(mock_get, client):
-    # Symulujemy wyjątek podczas wywołania API
     mock_get.side_effect = Exception("API call failed")
 
     response = client.post('/api/search', json={})
     assert response.status_code == 500
     data = response.get_json()
-    assert 'error' in data
+    assert 'msg' in data

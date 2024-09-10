@@ -33,11 +33,16 @@ def create_reaction():
     try:
         data = request.get_json()
         
-        if not data:
-            return jsonify({"message": "No input data provided"}), 400
+        if not data or not data["content"]:
+            return jsonify({"msg": "No input data provided or wrong data."}), 400
+        
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
+        
         news = News.query.filter_by(id=data["news_id"]).first_or_404() if data["news_id"] else None
         
         new_reaction = Reaction(news_id=data["news_id"], 
@@ -57,7 +62,7 @@ def create_reaction():
         )
         send_email(news.user.email, email_subject, email_body)
         
-        return jsonify({"message": "Reaction created successfully", 
+        return jsonify({"msg": "Reaction created successfully", 
                         "location": f'/reactions/{new_reaction.id}'}), 201
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -71,10 +76,14 @@ def update_reaction(reaction_id):
         data = request.get_json()
         
         if not data or not data["content"]:
-            return jsonify({"message": "No input data provided or missing data"}), 400
+            return jsonify({"msg": "No input data provided or missing data"}), 400
         
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
+        
         reaction = Reaction.query.filter(
             (Reaction.id == reaction_id) & 
             ((Reaction.user_id == user.id) | (user.role == 'admin'))
@@ -85,7 +94,7 @@ def update_reaction(reaction_id):
         
         db.session.commit()
         
-        return jsonify({"message": "Reaction updated successfully", 
+        return jsonify({"msg": "Reaction updated successfully", 
                         "location": f'/reactions/{reaction.id}'}), 200
     except Exception as e:
         return {"msg": str(e)}, 401
@@ -99,6 +108,9 @@ def delete_reaction(reaction_id):
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
 
+        if not user:
+            return jsonify({"msg": "User error."}), 400
+        
         reaction_to_delete = Reaction.query.filter(
             (Reaction.id == reaction_id)
         ).join(News).filter(
@@ -106,6 +118,10 @@ def delete_reaction(reaction_id):
             (user.role == 'admin') | 
             (News.user_id == user.id)
         ).first_or_404()
+        
+        if not reaction_to_delete:
+            return jsonify({"msg": "Reaction not found."}), 400
+        
         db.session.delete(reaction_to_delete)
         db.session.commit()
 

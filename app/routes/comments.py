@@ -34,11 +34,14 @@ def create_comment():
         current_user = get_jwt_identity()
         data = request.get_json()
         
-        if not data:
-            return jsonify({"msg": "No input data provided."}), 400
+        if not data or not data["content"]:
+            return jsonify({"msg": "No input data provided or wrong data."}), 400
         
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         post = Post.query.filter_by(id=data["post_id"]).first_or_404() if data["post_id"] else None
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
         
         new_comment = Comment(post_id=data["post_id"], 
                               content=data["content"], 
@@ -75,10 +78,18 @@ def update_comments(comment_id):
             return jsonify({"msg": "No input data provided or wrong data."}), 400
         
         user = User.query.filter_by(login=current_user).first_or_404()
+        
+        if not user:
+            return jsonify({"msg": "User error. Not found."}), 400
+        
         comment = Comment.query.filter(
             (Comment.id == comment_id) & 
             ((Comment.user_id == user.id) | (user.role == 'admin'))
         ).first_or_404()
+        
+        if not comment:
+                return jsonify({"msg": "Comment error. Not found."}), 400
+        
         comment.content = data["content"]
         comment.last_update = dt.utcnow()
         db.session.commit()
@@ -96,7 +107,10 @@ def delete_comment(comment_id):
     try:
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404()
-
+        
+        if not user:
+            return jsonify({"msg": "User error."}), 400
+        
         comment_to_delete = Comment.query.filter(
             (Comment.id == comment_id)
         ).join(Post).filter(
@@ -104,6 +118,10 @@ def delete_comment(comment_id):
             (user.role == 'admin') | 
             (Post.user_id == user.id)
         ).first_or_404()
+        
+        if not comment_to_delete:
+            return jsonify({"msg": "Comment not found."}), 400
+        
         db.session.delete(comment_to_delete)
         db.session.commit()
 
