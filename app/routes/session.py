@@ -89,11 +89,11 @@ def create_google_token():
         ).json()
     except requests.exceptions.RequestException as e:
         return jsonify({"msg": str(e)}), 500
-
-    user = User.query.filter_by(email=google_user_info['email'], 
-                                google_user=True).first()
     
-    if not user:
+    google_login = google_user_info['email']
+    user = User.query.filter_by(login=google_login).first() or User.query.filter_by(email=google_login).first()
+    
+    if not user: 
         try:
             new_google_user = User(
                 login=google_user_info.get('email'),
@@ -119,11 +119,14 @@ def create_google_token():
         except Exception as e:
             return jsonify({"msg": str(e)}), 500
     else:
-        logging.info(f'User {user.login} logged in.')
-        user.last_login = dt.utcnow()
-        db.session.commit()
+        if user.google_user:
+            logging.info(f'User {user.login} logged in.')
+            user.last_login = dt.utcnow()
+            db.session.commit()
+        else:
+            return jsonify({'msg': 'Login or email already exists.'}), 400
 
-    access_token = create_access_token(identity=google_user_info['email'])
+    access_token = create_access_token(identity=google_login)
     response = {"access_token": access_token}
         
     return jsonify(response), 200

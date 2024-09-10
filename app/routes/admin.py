@@ -116,7 +116,8 @@ def admin_login():
             next_page = request.args.get('next')
             return redirect(next_page or url_for('admin.index'))
         else:
-            logging.warn(f'Admin {user.login} trying to login. Invalid password.')
+            person = f'Admin {user.login}' if user else 'Someone'
+            logging.warn(f'{person} trying to login. Invalid password or email.')
             flash('Invalid email or password.', 'danger')
             
     return render_template('admin/admin_login.html')

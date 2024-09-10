@@ -13,7 +13,7 @@ def get_news():
     try:
         all_news = News.query.all()
         results = [process_post_news(news) for news in all_news]
-        return results
+        return {"msg": 'News uploaded succesfully.', 'results': results}, 200
     except Exception as e:
         return {"msg": str(e)}, 401
 
@@ -93,10 +93,10 @@ def delete_news(news_id):
                 Reaction.news_id == news_to_delete.id
                 ).first()
             if news_reactions:
-                return {'News still have reactions. Cant delete.'}, 400
+                return {'msg:' 'News still have reactions. Cant delete.'}, 400
             else: 
                 db.session.delete(news_to_delete)
                 db.session.commit()
-                return jsonify(news_to_delete), 200
+                return {'msg': 'News deleted'}, 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

@@ -17,10 +17,19 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s',
                     filename="repipe_raven.log"
                     )
-logging.info('Recipe Raven App starting.')
+logging.info('Receipe Raven App starting.')
 
-def create_app():
+def create_app(config_name=None):
     app = Flask(__name__, static_folder='static')
+    if config_name:
+        app.config.from_object(config_name)
+        db.init_app(app)
+        jwt.init_app(app)
+        with app.app_context():
+            from app.routes import routes as routes_blueprint
+            app.register_blueprint(routes_blueprint, url_prefix='/')
+            from app.routes import session
+            db.create_all()
     return app
 
 app = create_app()

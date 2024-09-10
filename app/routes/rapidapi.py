@@ -2,9 +2,11 @@ from app import app
 from app.utils import *
 from flask import jsonify, request
 from flask_cors import cross_origin
+import os
 import json
 import requests
-from PRIVATE_API_KEY import PRIVATE_API_KEY
+
+PRIVATE_API_KEY = os.environ['PRIVATE_API_KEY']
 
 @app.route('/api/search', methods=['POST'])
 @cross_origin()

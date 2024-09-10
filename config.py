@@ -13,6 +13,11 @@ class Config:
     UPLOADED_PHOTOS_DEST = os.path.join(os.getcwd(), 'app/static/uploaded_photos')
     ALLOWED_PHOTOS_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     
+class TestingConfig:
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    TESTING = True
+    JWT_SECRET_KEY = 'your-secret-key' 
+    
 class ProductionConfig(Config):
     DEBUG = False
 
