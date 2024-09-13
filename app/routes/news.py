@@ -13,7 +13,7 @@ def get_news():
     try:
         all_news = News.query.all()
         results = [process_post_news(news) for news in all_news]
-        return {"msg": 'News uploaded succesfully.', 'results': results}, 200
+        return {"msg": 'News downloaded succesfully.', 'results': results}, 200
     except Exception as e:
         return {"msg": str(e)}, 401
 

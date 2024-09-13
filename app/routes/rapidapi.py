@@ -95,7 +95,8 @@ def fetch_receipes():
                         single_result['image_REGULAR_url'] = regular['url']
             
             search_results['hits'].append(single_result)
-        return search_results
+            msg = 'Search completed succesfully' if not link_next_page[0] else 'More receips..'
+        return jsonify({'msg': msg, 'search_results': search_results}), 200
     except Exception as error:
         return jsonify({ 'msg': f'{error}' }), 500
 

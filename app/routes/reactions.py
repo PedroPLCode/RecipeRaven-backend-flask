@@ -40,9 +40,6 @@ def create_reaction():
         current_user = get_jwt_identity()
         user = User.query.filter_by(login=current_user).first_or_404() if current_user else None
         
-        if not user:
-            return jsonify({"msg": "User error. Not found."}), 400
-        
         news = News.query.filter_by(id=data["news_id"]).first_or_404() if data["news_id"] else None
         
         new_reaction = Reaction(news_id=data["news_id"], 

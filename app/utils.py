@@ -97,12 +97,14 @@ def process_comments_reaction(item):
         'guest_author': item.guest_author if item.guest_author else False,
         'creation_date': format_date(str(item.creation_date)),
         'last_update': format_date(str(item.last_update)),
+        'likes': [like.user_id for like in item.likes],
+        'hates': [hate.user_id for hate in item.hates],
     }
     
-    if item.likes:
-        result['likes'] = [like.user_id for like in item.likes],
-    if item.hates:
-        result['hates'] = [hate.user_id for hate in item.hates],
+#    if item.likes:
+#        result['likes'] = [like.user_id for like in item.likes],
+#    if item.hates:
+#        result['hates'] = [hate.user_id for hate in item.hates],
     
     return result
     

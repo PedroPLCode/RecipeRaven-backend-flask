@@ -20,17 +20,17 @@ def create_note():
             if data["content"] == '':
                 db.session.delete(note)
                 db.session.commit()
-                return jsonify({"msg": "Note deleted."}), 400
+                return jsonify({"msg": "Note deleted."}), 201
             else:
                 note.content = data["content"]
                 db.session.commit()
-                return jsonify({"msg": "Note updated."}), 400
+                return jsonify({"msg": "Note updated."}), 201
         else:
             new_note = Note(favorite_id=data["favorite_id"], 
                             content=data["content"])
             db.session.add(new_note)
             db.session.commit()
-            return jsonify({"msg": "Note created."}), 400
+            return jsonify({"msg": "Note created."}), 201
         
     except Exception as e:
         return jsonify({"msg": str(e)}), 401

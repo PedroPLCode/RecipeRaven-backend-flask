@@ -28,7 +28,7 @@ def get_posts():
     try:
         all_posts = Post.query.all()
         results = [process_post_news(post) for post in all_posts]
-        return results
+        return {"msg": 'Posts downloaded succesfully.', 'results': results}, 200
     except Exception as e:
         return {"msg": str(e)}, 401
 

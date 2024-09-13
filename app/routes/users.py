@@ -227,12 +227,12 @@ def change_user():
                 file.save(filepath)
                 data['picture'] = filename
                 logging.info(f'User {user.login} picture changed.')
-                return jsonify({"msg": "Picture changed"}), 201
             except Exception as e:
                 return jsonify({"msg": f"Error saving file: {str(e)}"}), 500
 
         if 'picture' in data:
             user.picture = data['picture']
+            return jsonify({"msg": "Picture changed."}), 201 
 
         old_password = data.get("oldPassword")
         new_password = data.get("newPassword")
@@ -328,7 +328,7 @@ def reset_password_request():
         email_address = data.get('email')
 
         if email_address:
-            user = User.query.filter_by(email=email_address).first_or_404()
+            user = User.query.filter_by(email=email_address).first()
             if user:
                 token = serializer.dumps(email_address, salt='reset-password')
                 reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
@@ -339,9 +339,9 @@ def reset_password_request():
                     )
                 send_email(email_address, email_subject, email_body)
                 
-                return jsonify({"reset_url": reset_url}), 200
+                return jsonify({"msg": "Reset password email sent."}), 200
             else:
-                return jsonify({"msg": "User not found."}), 400
+                return jsonify({"msg": "Email or User not found."}), 400
         else:
             return jsonify({"msg": "Email address not provided."}), 400
 
