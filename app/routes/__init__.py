@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from app import app
 from flask_cors import CORS
+from flask_cors import cross_origin
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.utils import check_and_delete_unconfirmed_users
 from flask_limiter import Limiter
@@ -17,8 +18,9 @@ limiter = Limiter(
 )
 
 @app.errorhandler(429)
+@cross_origin()
 def ratelimit_handler(e):
-    return jsonify(error="Too many requests, please try again later."), 429
+    return jsonify({"msg": f"Too many requests, please try again later."}), 429
 
 def start_scheduler():
     logging.info('Starting scheduller.')

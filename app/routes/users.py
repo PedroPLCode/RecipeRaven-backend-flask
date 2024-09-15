@@ -127,6 +127,7 @@ def create_user():
                         name=name if name else '',
                         about=about if about else '',
                         picture=filename if filename else '',
+                        original_google_picture=False,
                         )
         db.session.add(new_user)
         db.session.commit()

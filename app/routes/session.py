@@ -36,7 +36,11 @@ def refresh_expiring_jwts(response):
 def create_token():
     login = request.json.get("login", None)
     password = request.json.get("password", None)
-    user = User.query.filter_by(login = login).first_or_404()
+    
+    if not login or not password:
+        return jsonify({"msg": "Missing login or password."}), 401
+    
+    user = User.query.filter_by(login = login).first()
     
     if user and user.verify_password(password):
         if user.email_confirmed:
@@ -50,11 +54,12 @@ def create_token():
             return response
         else:
             response = {"msg": "Email not confirmed",
+                        "access_token": True,
                         "email_confirmed": user.email_confirmed}
             return response
     else:
-        logging.warn(f'User {user.login} trying to login. Invalid password.')
-        return {"msg": "Wrong email or password."}, 401
+        logging.warn(f'Someone trying to login. Invalid password.')
+        return jsonify({"msg": "Wrong login or password."}), 401
 
 
 @app.route('/google_token', methods=['POST'])
@@ -94,6 +99,7 @@ def create_google_token():
     
     google_login = google_user_info['email']
     user = User.query.filter_by(login=google_login).first() or User.query.filter_by(email=google_login).first()
+    response_msg = False
     
     if not user: 
         try:
@@ -117,6 +123,8 @@ def create_google_token():
                 username=new_google_user.name.title()
                 )
             send_email(new_google_user.email, email_subject, email_body)
+            
+            response_msg = 'Google User created and logged in succesfully.'
     
         except Exception as e:
             return jsonify({"msg": str(e)}), 500
@@ -125,12 +133,13 @@ def create_google_token():
             logging.info(f'User {user.login} logged in.')
             user.last_login = dt.utcnow()
             db.session.commit()
+            response_msg = 'Google User logged in succesfully.'
         else:
-            return jsonify({'msg': 'Login or email already exists.'}), 400
+            return jsonify({'msg': 'GoogleO2Auth. Login or email already exists.'}), 400
 
     access_token = create_access_token(identity=google_login)
     response = {"access_token": access_token,
-                "msg": "Logged in succesfully",
+                "msg": response_msg,
                 }
         
     return jsonify(response), 200
