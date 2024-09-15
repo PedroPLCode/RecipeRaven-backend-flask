@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from app import app
 from flask_cors import CORS
 from flask_cors import cross_origin
@@ -14,8 +14,10 @@ CORS(routes)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=[]
+    default_limits=["100 per day", "10 per minute"]
 )
+
+limiter.request_filter(lambda: request.path.startswith('/static'))
 
 @app.errorhandler(429)
 @cross_origin()

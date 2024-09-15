@@ -9,6 +9,7 @@ from app.models import User
 import json
 import requests
 import logging
+from pathlib import Path
 from app.emails_templates import CREATE_USER_EMAIL_BODY
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required
@@ -103,6 +104,16 @@ def create_google_token():
     
     if not user: 
         try:
+            picture_url = google_user_info.get('picture')
+            if picture_url:
+                picture_response = requests.get(picture_url)
+                if picture_response.status_code == 200:
+                    extension = Path(picture_url).suffix
+                    filename = f'{google_login}{extension}'
+                    filepath = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
+                    with open(filepath, 'wb') as f:
+                        f.write(picture_response.content)
+            
             new_google_user = User(
                 login=google_user_info.get('email'),
                 google_user=True,
@@ -111,7 +122,8 @@ def create_google_token():
                 name=google_user_info.get('given_name', ''),
                 about=google_user_info.get('name', ''),
                 last_login=dt.utcnow(),
-                picture=google_user_info.get('picture', ''),
+                picture=filename if filename else '',
+                original_google_picture=False
             )
             db.session.add(new_google_user)
             db.session.commit()
