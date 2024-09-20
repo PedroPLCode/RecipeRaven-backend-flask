@@ -14,7 +14,7 @@ CORS(routes)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["100 per day", "10 per minute"]
+    default_limits=[]
 )
 
 limiter.request_filter(lambda: request.path.startswith('/static'))

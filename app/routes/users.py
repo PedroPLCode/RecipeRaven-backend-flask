@@ -233,6 +233,7 @@ def change_user():
 
         if 'picture' in data:
             user.picture = data['picture']
+            db.session.commit()
             return jsonify({"msg": "Picture changed."}), 201 
 
         old_password = data.get("oldPassword")
@@ -240,6 +241,7 @@ def change_user():
         if old_password and new_password:
             if user.verify_password(old_password):
                 user.password = new_password
+                db.session.commit()
                 logging.info(f'User {user.login} password changed.')
                 email_subject = 'Your Password has been changed.'
                 email_body = PASSWORD_CHANGED_EMAIL_BODY.format(
