@@ -333,16 +333,19 @@ def reset_password_request():
         if email_address:
             user = User.query.filter_by(email=email_address).first()
             if user:
-                token = serializer.dumps(email_address, salt='reset-password')
-                reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
-                email_subject = 'Reset Your password.'
-                email_body = RESET_PASSWORD_EMAIL_BODY.format(
-                    username=user.name.title() if user.name else user.login,
-                    link=reset_url
-                    )
-                send_email(email_address, email_subject, email_body)
-                
-                return jsonify({"msg": "Reset password email sent."}), 200
+                if user.google_user:
+                    return jsonify({"msg": f"{user.login} is Google User. Cant change password."}), 400
+                else:
+                    token = serializer.dumps(email_address, salt='reset-password')
+                    reset_url = f'http://127.0.0.1:3000/resetpassword/{token}'
+                    email_subject = 'Reset Your password.'
+                    email_body = RESET_PASSWORD_EMAIL_BODY.format(
+                        username=user.name.title() if user.name else user.login,
+                        link=reset_url
+                        )
+                    send_email(email_address, email_subject, email_body)
+                    
+                    return jsonify({"msg": "Reset password email sent."}), 200
             else:
                 return jsonify({"msg": "Email or User not found."}), 400
         else:

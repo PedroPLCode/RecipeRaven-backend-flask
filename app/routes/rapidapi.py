@@ -18,10 +18,15 @@ def fetch_receipes():
     excluded_array = (data_dict.get('excluded', False))
     params_array = (data_dict.get('params', False))
     random = (data_dict.get('random', False))
-    link_next_page = (data_dict.get('link_next_page'), False)
+    link_next_page = data_dict.get('link_next_page', None)
     
-    diet_labels = ['low-carb', 'low-fat']
-    health_labels = ['vegan', 'vegetarian', 'gluten-free', 'alcohol-free']
+    diet_labels = ['low-carb', 'low-fat', 'high-protein']
+    health_labels = ['vegan', 'vegetarian', 'alcohol-free']
+    
+    msg = 'Search completed succesfully'
+    if not ingredients_array and not excluded_array and not params_array and not (link_next_page and isinstance(link_next_page, dict) and 'href' in link_next_page):
+        msg = 'Try to search something specific.'
+
     
     headers = {
         "Accept-Language": "en",
@@ -30,9 +35,10 @@ def fetch_receipes():
         "X-RapidAPI-Host": "edamam-recipe-search.p.rapidapi.com"
     }
     
-    if link_next_page[0]:
-        url = link_next_page[0]['href']
+    if link_next_page and isinstance(link_next_page, dict) and 'href' in link_next_page:
+        url = link_next_page['href']
         querystring = None
+        msg = 'More receips..'
     else:
         url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
         querystring = {
@@ -49,7 +55,11 @@ def fetch_receipes():
         if isinstance(params_array, list):
             querystring["diet"] = [single_param for single_param in params_array if single_param in diet_labels]
             querystring["health"] = [single_param for single_param in params_array if single_param in health_labels]
-                    
+            if not querystring["diet"]:
+                del querystring["diet"]  
+            if not querystring["health"]:
+                del querystring["health"] 
+
     try:
         response = requests.get(url, headers=headers, params=querystring)
         response_data = response.json()
@@ -95,7 +105,7 @@ def fetch_receipes():
                         single_result['image_REGULAR_url'] = regular['url']
             
             search_results['hits'].append(single_result)
-            msg = 'Search completed succesfully' if not link_next_page[0] else 'More receips..'
+            
         return jsonify({'msg': msg, 'search_results': search_results}), 200
     except Exception as error:
         return jsonify({ 'msg': f'{error}' }), 500
